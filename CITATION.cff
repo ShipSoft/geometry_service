@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: SHiP Geometry Service
+version: 0.1.0
+date-released: "2026-05-07"
+url: https://github.com/ShipSoft/geometry_service
+repository-code: https://github.com/ShipSoft/geometry_service
+type: software
+license: LGPL-3.0-or-later
+authors:
+  - name: The SHiP Collaboration
+abstract: Framework-agnostic C++20 library wrapping the SHiP GeoModel geometry behind a stable interface, providing geometry and magnetic field services.
+keywords:
+  - physics
+  - particle-physics
+  - detector-geometry
+  - SHiP
+  - GeoModel
+  - Geant4
