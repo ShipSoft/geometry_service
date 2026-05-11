@@ -6,7 +6,6 @@
 #include "GeometryService/IGeometryService.h"
 
 #include <GeoModelKernel/GeoVPhysVol.h>
-
 #include <memory>
 #include <mutex>
 #include <string>
@@ -21,7 +20,7 @@ namespace ship {
 ///   SHiPGeometryService::fromSource()         — builds via SHiPGeometryBuilder
 ///   SHiPGeometryService::fromFile(dbPath)     — reads from a GeoModel .db file
 class SHiPGeometryService final : public IGeometryService {
-public:
+   public:
     /// Build geometry from the C++ SHiPGeometryBuilder.
     static std::unique_ptr<SHiPGeometryService> fromSource();
 
@@ -36,16 +35,16 @@ public:
     SHiPGeometryService(SHiPGeometryService&&) = default;
     SHiPGeometryService& operator=(SHiPGeometryService&&) = default;
 
-    const GeoVPhysVol* geoModelWorld()      const override;
-    G4LogicalVolume*   geant4WorldLogical()        override;
-    G4LogicalVolume*   getLogicalVolume(const std::string& name) const override;
+    const GeoVPhysVol* geoModelWorld() const override;
+    G4LogicalVolume* geant4WorldLogical() override;
+    G4LogicalVolume* getLogicalVolume(const std::string& name) const override;
 
-private:
+   private:
     SHiPGeometryService() = default;
 
-    PVConstLink            m_world;              ///< intrusive ref-counted GeoModel tree
+    PVConstLink m_world;  ///< intrusive ref-counted GeoModel tree
     mutable std::once_flag m_g4ConversionDone;
-    G4LogicalVolume*       m_g4WorldLV{nullptr};  ///< written once via call_once
+    G4LogicalVolume* m_g4WorldLV{nullptr};  ///< written once via call_once
 };
 
 }  // namespace ship

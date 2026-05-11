@@ -4,15 +4,13 @@
 
 #include "GeometryService/SHiPGeometryService.h"
 
-#include <SHiPGeometry/SHiPGeometry.h>
-
-#include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelDBManager/GMDBManager.h>
-#include <GeoModelRead/ReadGeoModel.h>
-#include <GeoModel2G4/ExtParameterisedVolumeBuilder.h>
-
 #include <G4LogicalVolumeStore.hh>
 
+#include <GeoModel2G4/ExtParameterisedVolumeBuilder.h>
+#include <GeoModelDBManager/GMDBManager.h>
+#include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelRead/ReadGeoModel.h>
+#include <SHiPGeometry/SHiPGeometry.h>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -38,7 +36,7 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromSource() {
 
 std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(const std::string& dbPath) {
     auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
-    auto db  = std::make_shared<GMDBManager>(dbPath);
+    auto db = std::make_shared<GMDBManager>(dbPath);
     GeoModelIO::ReadGeoModel reader(db);
     svc->m_world = reader.buildGeoModel();
     if (!svc->m_world)
@@ -59,8 +57,7 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
         ExtParameterisedVolumeBuilder builder("SHiP");
         m_g4WorldLV = builder.Build(m_world);
         if (!m_g4WorldLV)
-            throw std::runtime_error(
-                "SHiPGeometryService: GeoModel→Geant4 conversion failed");
+            throw std::runtime_error("SHiPGeometryService: GeoModel→Geant4 conversion failed");
     });
     return m_g4WorldLV;
 }

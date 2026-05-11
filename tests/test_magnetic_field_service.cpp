@@ -4,15 +4,13 @@
 
 #include "GeometryService/SHiPMagneticFieldService.h"
 
+#include <array>
 #include <gtest/gtest.h>
-
+#include <memory>
 #include <mp-units/systems/si.h>
 
-#include <array>
-#include <memory>
-
-using ship::SHiPMagneticFieldService;
 using ship::IMagneticFieldService;
+using ship::SHiPMagneticFieldService;
 namespace si = mp_units::si;
 using namespace mp_units::si::unit_symbols;
 
@@ -21,13 +19,13 @@ using namespace mp_units::si::unit_symbols;
 // ============================================================================
 
 // MuonShield
-constexpr double k_msZ  = 16763.3;
+constexpr double k_msZ = 16763.3;
 constexpr double k_msHX = 1810.0;
 constexpr double k_msHY = 1700.0;
 constexpr double k_msHZ = 14724.0;
 
 // Spectrometer Magnet
-constexpr double k_smZ  = 89570.0;
+constexpr double k_smZ = 89570.0;
 constexpr double k_smHZ = 2500.0;
 
 // ============================================================================
@@ -102,12 +100,10 @@ TEST(MagneticFieldServiceTest, CustomEvaluatorRespected) {
     r.centreX = 0.0;
     r.centreY = 0.0;
     r.centreZ = 0.0;
-    r.halfX   = 1000.0;
-    r.halfY   = 1000.0;
-    r.halfZ   = 1000.0;
-    r.evaluator = [](double, double, double) -> std::array<double, 3> {
-        return {0.5, 0.0, 0.0};
-    };
+    r.halfX = 1000.0;
+    r.halfY = 1000.0;
+    r.halfZ = 1000.0;
+    r.evaluator = [](double, double, double) -> std::array<double, 3> { return {0.5, 0.0, 0.0}; };
 
     std::vector<SHiPMagneticFieldService::FieldRegion> regions;
     regions.push_back(std::move(r));

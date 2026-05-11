@@ -5,7 +5,6 @@
 #include "GeometryService/SHiPGeometryService.h"
 
 #include <gtest/gtest.h>
-
 #include <memory>
 
 using ship::SHiPGeometryService;

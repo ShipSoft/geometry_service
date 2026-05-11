@@ -13,7 +13,7 @@ namespace ship {
 /// Framework-agnostic interface to the SHiP detector geometry.
 /// Ownership of all returned pointers stays with the service.
 class IGeometryService {
-public:
+   public:
     virtual ~IGeometryService() = default;
 
     /// GeoModel world physical volume (const — tree is immutable after build).
