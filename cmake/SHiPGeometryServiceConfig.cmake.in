@@ -8,7 +8,9 @@ include(CMakeFindDependencyMacro)
 
 # Propagate dependency prefixes so find_dependency succeeds without
 # downstream consumers needing to add transitive deps to CMAKE_PREFIX_PATH.
-set(_SHiPGS_extra_prefixes "@_ms_gsl_prefix@;@_mp_units_prefix@;@_geometry_prefix@")
+set(_SHiPGS_extra_prefixes
+    "@_ms_gsl_prefix@;@_mp_units_prefix@;@_geometry_prefix@"
+)
 list(APPEND CMAKE_PREFIX_PATH ${_SHiPGS_extra_prefixes})
 
 find_dependency(SHiPGeometry CONFIG REQUIRED)
