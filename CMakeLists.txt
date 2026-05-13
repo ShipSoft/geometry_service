@@ -41,6 +41,7 @@ cmake_path(GET _d PARENT_PATH _mp_units_prefix)
 cmake_path(GET SHiPGeometry_DIR PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _geometry_prefix)
+unset(_d)
 
 # ----------------------------------------------------------------------------
 # Library
