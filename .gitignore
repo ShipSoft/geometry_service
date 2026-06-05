@@ -3,3 +3,4 @@ install/
 *.db
 __pycache__/
 .cache/
+.pixi/
