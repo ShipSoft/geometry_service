@@ -8,9 +8,7 @@ include(CMakeFindDependencyMacro)
 
 # Propagate dependency prefixes so find_dependency succeeds without
 # downstream consumers needing to add transitive deps to CMAKE_PREFIX_PATH.
-set(_SHiPGS_extra_prefixes
-    "@_ms_gsl_prefix@;@_mp_units_prefix@;@_geometry_prefix@"
-)
+set(_SHiPGS_extra_prefixes "@_mp_units_prefix@;@_geometry_prefix@")
 list(FILTER _SHiPGS_extra_prefixes EXCLUDE REGEX "^$")
 set(_SHiPGS_saved_CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}")
 list(APPEND CMAKE_PREFIX_PATH ${_SHiPGS_extra_prefixes})
@@ -20,7 +18,6 @@ find_dependency(GeoModelCore CONFIG REQUIRED)
 find_dependency(GeoModelIO CONFIG REQUIRED)
 find_dependency(GeoModelG4 CONFIG REQUIRED)
 find_dependency(Geant4 REQUIRED)
-find_dependency(Microsoft.GSL REQUIRED)
 find_dependency(mp-units CONFIG REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceTargets.cmake")

@@ -26,16 +26,11 @@ find_package(GeoModelCore CONFIG REQUIRED)
 find_package(GeoModelIO CONFIG REQUIRED)
 find_package(GeoModelG4 CONFIG REQUIRED)
 find_package(Geant4 REQUIRED)
-find_package(Microsoft.GSL REQUIRED) # mp-units depends on this but doesn't find it automatically
 find_package(mp-units CONFIG REQUIRED)
 
 # Resolve install prefixes from the *_DIR cache variables set by find_package.
 # These are embedded in the installed config so find_dependency succeeds
 # without downstream consumers needing to set CMAKE_PREFIX_PATH.
-cmake_path(GET Microsoft.GSL_DIR PARENT_PATH _d)
-cmake_path(GET _d PARENT_PATH _d)
-cmake_path(GET _d PARENT_PATH _ms_gsl_prefix)
-
 cmake_path(GET mp-units_DIR PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _mp_units_prefix)
