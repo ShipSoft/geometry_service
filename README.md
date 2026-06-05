@@ -34,20 +34,44 @@ and ALICE O2's `GeometryManager`.
 
 ## Prerequisites
 
+The easiest setup is [pixi](https://pixi.sh), which provisions the full
+toolchain from `conda-forge` and the SHiP channel at `prefix.dev/ship`.
+For manual builds you'll need:
+
 - CMake 3.20+
 - C++20 compiler
 - `SHiPGeometry` installed (from `geometry/` repository)
 - GeoModel 6.22+ (GeoModelCore, GeoModelIO, GeoModelG4)
 - Geant4 11.x
-
-On CVMFS-enabled systems:
-
-```bash
-source /cvmfs/sft.cern.ch/lcg/views/LCG_109/x86_64-el9-gcc15-opt/setup.sh
-export LD_LIBRARY_PATH=/path/to/GeoModel/install/lib64:$LD_LIBRARY_PATH
-```
+- mp-units
 
 ## Building
+
+### With pixi (recommended)
+
+```bash
+pixi run test
+```
+
+That single command provisions the env, configures with CMake/Ninja
+(`RelWithDebInfo`), builds, and runs ctest — the same chain CI uses.
+
+For iteration, the individual tasks defined in `pixi.toml` are:
+
+```bash
+pixi run configure   # cmake -S . -B build -G Ninja ...
+pixi run build       # cmake --build build -j
+pixi run test        # ctest --test-dir build --output-on-failure
+```
+
+Use `pixi shell` to drop into an interactive shell with the env activated
+(useful for running individual binaries, debuggers, etc.).
+
+### Manual build
+
+If you already have GeoModel, Geant4, `SHiPGeometry`, and `mp-units`
+installed (e.g. via spack or a system package manager), you can build
+directly with CMake:
 
 ```bash
 cmake -B build \

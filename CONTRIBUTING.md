@@ -5,7 +5,7 @@ Thank you for your interest in contributing! As part of the SHiP Collaboration, 
 ## Development Workflow
 
 1. **Fork and Clone**: Create a fork of the repository and clone it locally.
-2. **Environment**: Ensure you have the required dependencies (GeoModel 6.22+, Geant4 11.x, SHiPGeometry, mp-units). Using the SHiP software stack via CVMFS is recommended.
+2. **Environment**: Install [pixi](https://pixi.sh) — it provisions all build dependencies (GeoModel 6.22+, Geant4 11.x, SHiPGeometry, mp-units, ROOT) from `conda-forge` and `prefix.dev/ship`. Manual installs are also supported (see the README).
 3. **Pre-commit Hooks**: We use `pre-commit` to enforce coding standards. Install the hooks before making changes:
    ```bash
    pre-commit install
@@ -24,10 +24,9 @@ Thank you for your interest in contributing! As part of the SHiP Collaboration, 
 7. **Testing**:
    - Build and run the tests:
      ```bash
-     cmake -S . -B build
-     cmake --build build
-     ctest --test-dir build --output-on-failure
+     pixi run test
      ```
+     During iteration, `pixi run build` rebuilds incrementally without re-running ctest.
    - Add tests for new features.
 8. **Submission**: Open a Pull Request against the `main` branch. Ensure the CI passes.
 
