@@ -17,6 +17,7 @@ shipgeometry = "*"
 geomodel = ">=6.22"
 mp-units = "*"
 root = "*"
+eigen-abi-devel = "*"
 
 [tasks]
 configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
