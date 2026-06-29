@@ -4,3 +4,5 @@ install/
 __pycache__/
 .cache/
 .pixi/
+doxygen/html/
+doxygen/latex/
