@@ -4,6 +4,10 @@ A framework-agnostic C++20 library that wraps the SHiP GeoModel geometry behind 
 stable interface. The design follows the patterns of DD4HEP's `IGeoSvc` (LHCb/key4hep)
 and ALICE O2's `GeometryManager`.
 
+## Documentation
+
+An [automatic class reference](https://shipsoft.github.io/geometry_service/) is built using Doxygen from comments in the C++ code.
+
 ## Architecture
 
 ```
