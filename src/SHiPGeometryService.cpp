@@ -11,6 +11,7 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
 #include <SHiPGeometry/SHiPGeometry.h>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -35,6 +36,10 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromSource() {
 // ----------------------------------------------------------------------------
 
 std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(const std::string& dbPath) {
+    // GMDBManager opens via sqlite3_open, which silently creates a missing
+    // file; validate up front to fail with a clear message instead.
+    if (!std::filesystem::is_regular_file(dbPath))
+        throw std::runtime_error("SHiPGeometryService::fromFile: no such file: " + dbPath);
     auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
     auto db = std::make_shared<GMDBManager>(dbPath);
     GeoModelIO::ReadGeoModel reader(db);
