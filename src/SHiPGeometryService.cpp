@@ -68,12 +68,7 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
 }
 
 G4LogicalVolume* SHiPGeometryService::getLogicalVolume(const std::string& name) const {
-    auto* store = G4LogicalVolumeStore::GetInstance();
-    for (auto* lv : *store) {
-        if (lv->GetName() == name)
-            return lv;
-    }
-    return nullptr;
+    return G4LogicalVolumeStore::GetInstance()->GetVolume(name, /*verbose=*/false);
 }
 
 }  // namespace ship
