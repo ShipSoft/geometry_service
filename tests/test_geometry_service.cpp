@@ -6,8 +6,13 @@
 
 #include <gtest/gtest.h>
 #include <memory>
+#include <stdexcept>
 
 using ship::SHiPGeometryService;
+
+TEST(GeometryServiceTest, FromFileMissingFileThrows) {
+    EXPECT_THROW(SHiPGeometryService::fromFile("/nonexistent/path.db"), std::runtime_error);
+}
 
 TEST(GeometryServiceTest, FromSourceReturnsNonNull) {
     auto svc = SHiPGeometryService::fromSource();
