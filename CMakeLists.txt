@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 
 project(
     SHiPGeometryService
@@ -46,18 +46,19 @@ target_include_directories(
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-    PRIVATE ${Geant4_INCLUDE_DIRS}
 )
 
+# Only GeoModelKernel appears in public headers (PVConstLink); everything
+# else is implementation detail.
 target_link_libraries(
     SHiPGeometryService
-    PUBLIC
+    PUBLIC GeoModelCore::GeoModelKernel
+    PRIVATE
         SHiPGeometry::SHiPGeometry
-        GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelRead
         GeoModel2G4
-    PRIVATE ${Geant4_LIBRARIES}
+        ${Geant4_LIBRARIES}
 )
 
 # ----------------------------------------------------------------------------

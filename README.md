@@ -42,7 +42,7 @@ The easiest setup is [pixi](https://pixi.sh), which provisions the full
 toolchain from `conda-forge` and the SHiP channel at `prefix.dev/ship`.
 For manual builds you'll need:
 
-- CMake 3.20+
+- CMake 3.24+
 - C++20 compiler
 - `SHiPGeometry` installed (from `geometry/` repository)
 - GeoModel 6.22+ (GeoModelCore, GeoModelIO, GeoModelG4)
