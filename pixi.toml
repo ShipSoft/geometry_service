@@ -15,8 +15,9 @@ ninja = "*"
 git = "*"
 shipgeometry = "*"
 geomodel = ">=6.22"
-mp-units = "*"
-root = "*"
+# Required by GeoModelTools' CMake config (find_dependency via SHiPGeometry);
+# not declared as a run dependency by the shipgeometry package itself.
+nlohmann_json = "*"
 eigen-abi-devel = "*"
 
 [tasks]

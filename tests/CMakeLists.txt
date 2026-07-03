@@ -22,12 +22,3 @@ target_link_libraries(
 )
 
 gtest_discover_tests(test_geometry_service DISCOVERY_MODE PRE_TEST)
-
-add_executable(test_magnetic_field_service test_magnetic_field_service.cpp)
-
-target_link_libraries(
-    test_magnetic_field_service
-    PRIVATE SHiPGeometryService GTest::gtest_main
-)
-
-gtest_discover_tests(test_magnetic_field_service DISCOVERY_MODE PRE_TEST)

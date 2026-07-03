@@ -26,15 +26,10 @@ find_package(GeoModelCore CONFIG REQUIRED)
 find_package(GeoModelIO CONFIG REQUIRED)
 find_package(GeoModelG4 CONFIG REQUIRED)
 find_package(Geant4 REQUIRED)
-find_package(mp-units CONFIG REQUIRED)
 
 # Resolve install prefixes from the *_DIR cache variables set by find_package.
 # These are embedded in the installed config so find_dependency succeeds
 # without downstream consumers needing to set CMAKE_PREFIX_PATH.
-cmake_path(GET mp-units_DIR PARENT_PATH _d)
-cmake_path(GET _d PARENT_PATH _d)
-cmake_path(GET _d PARENT_PATH _mp_units_prefix)
-
 cmake_path(GET SHiPGeometry_DIR PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _d)
 cmake_path(GET _d PARENT_PATH _geometry_prefix)
@@ -44,11 +39,7 @@ unset(_d)
 # Library
 # ----------------------------------------------------------------------------
 
-add_library(
-    SHiPGeometryService
-    src/SHiPGeometryService.cpp
-    src/SHiPMagneticFieldService.cpp
-)
+add_library(SHiPGeometryService src/SHiPGeometryService.cpp)
 
 target_include_directories(
     SHiPGeometryService
@@ -66,7 +57,6 @@ target_link_libraries(
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelRead
         GeoModel2G4
-        mp-units::mp-units
     PRIVATE ${Geant4_LIBRARIES}
 )
 
@@ -78,7 +68,6 @@ enable_testing()
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-add_subdirectory(apps)
 
 # ----------------------------------------------------------------------------
 # Installation

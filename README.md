@@ -47,7 +47,6 @@ For manual builds you'll need:
 - `SHiPGeometry` installed (from `geometry/` repository)
 - GeoModel 6.22+ (GeoModelCore, GeoModelIO, GeoModelG4)
 - Geant4 11.x
-- mp-units
 
 ## Building
 
@@ -73,7 +72,7 @@ Use `pixi shell` to drop into an interactive shell with the env activated
 
 ### Manual build
 
-If you already have GeoModel, Geant4, `SHiPGeometry`, and `mp-units`
+If you already have GeoModel, Geant4, and `SHiPGeometry`
 installed (e.g. via spack or a system package manager), you can build
 directly with CMake:
 
