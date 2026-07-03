@@ -23,7 +23,7 @@ eigen-abi-devel = "*"
 [tasks]
 configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
 build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
-test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
+test = { cmd = "ctest --test-dir build --output-on-failure --no-tests=error", depends-on = ["build"] }
 
 # Linting / formatting toolchain. prek orchestrates the hooks; the tools come
 # from this environment so versions are tracked in pixi.lock and run identically
