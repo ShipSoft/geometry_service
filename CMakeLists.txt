@@ -64,7 +64,7 @@ target_link_libraries(
 # Tests
 # ----------------------------------------------------------------------------
 
-enable_testing()
+include(CTest)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
