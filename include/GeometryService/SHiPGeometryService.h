@@ -29,11 +29,12 @@ class SHiPGeometryService final : public IGeometryService {
 
     ~SHiPGeometryService() override = default;
 
-    // Non-copyable, movable
+    // Non-copyable and non-movable (std::once_flag member; instances are
+    // only handed out via unique_ptr, so moves are not needed).
     SHiPGeometryService(const SHiPGeometryService&) = delete;
     SHiPGeometryService& operator=(const SHiPGeometryService&) = delete;
-    SHiPGeometryService(SHiPGeometryService&&) = default;
-    SHiPGeometryService& operator=(SHiPGeometryService&&) = default;
+    SHiPGeometryService(SHiPGeometryService&&) = delete;
+    SHiPGeometryService& operator=(SHiPGeometryService&&) = delete;
 
     const GeoVPhysVol* geoModelWorld() const override;
     G4LogicalVolume* geant4WorldLogical() override;
