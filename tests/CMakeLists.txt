@@ -5,21 +5,21 @@
 include(FetchContent)
 
 FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.17.0
-    FIND_PACKAGE_ARGS NAMES GTest
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.8.0
+    FIND_PACKAGE_ARGS NAMES Catch2
 )
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(Catch2)
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
-include(GoogleTest)
+include(Catch)
 
 add_executable(test_geometry_service test_geometry_service.cpp)
 
 target_link_libraries(
     test_geometry_service
-    PRIVATE SHiPGeometryService GTest::gtest_main
+    PRIVATE SHiPGeometryService Catch2::Catch2WithMain
 )
 
-gtest_discover_tests(test_geometry_service DISCOVERY_MODE PRE_TEST)
+catch_discover_tests(test_geometry_service)
