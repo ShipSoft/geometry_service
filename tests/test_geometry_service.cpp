@@ -4,31 +4,31 @@
 
 #include "GeometryService/SHiPGeometryService.h"
 
-#include <gtest/gtest.h>
+#include <catch2/catch_test_macros.hpp>
 #include <memory>
 #include <stdexcept>
 
 using ship::SHiPGeometryService;
 
-TEST(GeometryServiceTest, FromFileMissingFileThrows) {
-    EXPECT_THROW(SHiPGeometryService::fromFile("/nonexistent/path.db"), std::runtime_error);
+TEST_CASE("GeometryServiceTest.FromFileMissingFileThrows", "[geometry_service]") {
+    CHECK_THROWS_AS(SHiPGeometryService::fromFile("/nonexistent/path.db"), std::runtime_error);
 }
 
-TEST(GeometryServiceTest, FromSourceReturnsNonNull) {
+TEST_CASE("GeometryServiceTest.FromSourceReturnsNonNull", "[geometry_service]") {
     auto svc = SHiPGeometryService::fromSource();
-    EXPECT_NE(svc, nullptr);
+    CHECK(svc != nullptr);
 }
 
-TEST(GeometryServiceTest, GeoModelWorldNonNull) {
+TEST_CASE("GeometryServiceTest.GeoModelWorldNonNull", "[geometry_service]") {
     auto svc = SHiPGeometryService::fromSource();
-    ASSERT_NE(svc, nullptr);
-    EXPECT_NE(svc->geoModelWorld(), nullptr);
+    REQUIRE(svc != nullptr);
+    CHECK(svc->geoModelWorld() != nullptr);
 }
 
-TEST(GeometryServiceTest, GetLogicalVolumeBeforeG4ReturnsNull) {
+TEST_CASE("GeometryServiceTest.GetLogicalVolumeBeforeG4ReturnsNull", "[geometry_service]") {
     // geant4WorldLogical() has not been called, so G4LogicalVolumeStore is empty.
     // getLogicalVolume() must return nullptr without crashing.
     auto svc = SHiPGeometryService::fromSource();
-    ASSERT_NE(svc, nullptr);
-    EXPECT_EQ(svc->getLogicalVolume("anything"), nullptr);
+    REQUIRE(svc != nullptr);
+    CHECK(svc->getLogicalVolume("anything") == nullptr);
 }
