@@ -89,6 +89,19 @@ sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/pre-commit
 sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/commit-msg"
 '''
 
+# --- Multi-package development (opt-in) -------------------------------------
+# Build shipgeometry from a sibling checkout instead of the released conda
+# package: uncomment this block and the `dev` environment below, then run
+# e.g. `pixi run -e dev build`. Do NOT commit the uncommented block or the
+# pixi.lock changes it causes: the committed lock must stay resolvable
+# without sibling checkouts, and pixi validates every environment even when
+# only the default one is used. See the Developer Guide (SHiP Documentation
+# site) for the full workflow.
+#
+# [feature.dev.dependencies]
+# shipgeometry = { path = "../geometry" }
+
 [environments]
 default = { solve-group = "default" }
 lint = { features = ["lint"], solve-group = "lint" }
+# dev = { features = ["dev"] }  # multi-package dev, see block above
