@@ -6,6 +6,39 @@ name = "shipgeometryservice"
 description = "SHiP geometry service library (framework-agnostic)"
 channels = ["https://prefix.dev/ship", "conda-forge"]
 platforms = ["linux-64"]
+preview = ["pixi-build"]
+requires-pixi = ">=0.68"
+
+# Lets downstream dev environments (aegir, ...) consume the geometry service
+# from source: `shipgeometryservice = { path = "../geometry_service" }`.
+# Mirrors ship-conda-recipes/recipes/shipgeometryservice (the release recipe);
+# keep the version and the host dependencies in lockstep with it. To
+# co-develop the geometry itself, point shipgeometry below at a sibling
+# checkout: `shipgeometry = { path = "../geometry" }`.
+[package]
+name = "shipgeometryservice"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+
+[package.build.config]
+extra-args = [
+    "-DCMAKE_CXX_STANDARD=20",
+    "-DCMAKE_INSTALL_LIBDIR=lib",
+    "-DBUILD_TESTING=OFF",
+]
+
+# eigen-abi-devel and nlohmann_json are needed for the same GeoModel CMake
+# config reasons documented in the release recipe.
+[package.host-dependencies]
+shipgeometry = "*"
+geomodel-core = "*"
+geomodel-g4 = "*"
+geant4 = "*"
+mp-units = "*"
+eigen-abi-devel = "*"
+nlohmann_json = "*"
 
 [dependencies]
 cxx-compiler = "*"
