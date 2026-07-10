@@ -6,10 +6,11 @@ Thank you for your interest in contributing! As part of the SHiP Collaboration, 
 
 1. **Fork and Clone**: Create a fork of the repository and clone it locally.
 2. **Environment**: Install [pixi](https://pixi.sh) — it provisions all build dependencies (GeoModel 6.22+, Geant4 11.x, SHiPGeometry) from `conda-forge` and `prefix.dev/ship`. Manual installs are also supported (see the README).
-3. **Pre-commit Hooks**: We use `pre-commit` to enforce coding standards. Install the hooks before making changes:
+3. **Pre-commit Hooks**: We use [`prek`](https://github.com/j178/prek) (a drop-in `pre-commit` replacement) to enforce coding standards. The hook tools come from the pixi `lint` environment, so versions are tracked in `pixi.lock` and run identically everywhere. Install the hooks once:
    ```bash
-   pre-commit install
+   pixi run install-hooks
    ```
+   Run all hooks manually at any time with `pixi run lint`.
 4. **Branching**: Create a feature branch for your changes.
 5. **Coding Standards**:
    - Follow the existing C++ style (enforced by `clang-format` and `cpplint`).
