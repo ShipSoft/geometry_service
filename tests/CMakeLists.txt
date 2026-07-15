@@ -23,3 +23,12 @@ target_link_libraries(
 )
 
 catch_discover_tests(test_geometry_service)
+
+add_executable(test_ray_scanner test_ray_scanner.cpp)
+
+target_link_libraries(
+    test_ray_scanner
+    PRIVATE SHiPGeometryService Catch2::Catch2WithMain
+)
+
+catch_discover_tests(test_ray_scanner)

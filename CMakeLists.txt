@@ -39,7 +39,11 @@ unset(_d)
 # Library
 # ----------------------------------------------------------------------------
 
-add_library(SHiPGeometryService src/SHiPGeometryService.cpp)
+add_library(
+    SHiPGeometryService
+    src/SHiPGeometryService.cpp
+    src/G4RayScanner.cpp
+)
 
 target_include_directories(
     SHiPGeometryService
@@ -48,17 +52,17 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
-# Only GeoModelKernel appears in public headers (PVConstLink); everything
-# else is implementation detail.
+# GeoModelKernel (PVConstLink) and Geant4 (G4RayScanner.h holds a
+# G4Navigator by value) appear in public headers; everything else is
+# implementation detail.
 target_link_libraries(
     SHiPGeometryService
-    PUBLIC GeoModelCore::GeoModelKernel
+    PUBLIC GeoModelCore::GeoModelKernel ${Geant4_LIBRARIES}
     PRIVATE
         SHiPGeometry::SHiPGeometry
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelRead
         GeoModel2G4
-        ${Geant4_LIBRARIES}
 )
 
 # ----------------------------------------------------------------------------

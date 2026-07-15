@@ -50,6 +50,18 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(const std::st
 }
 
 // ----------------------------------------------------------------------------
+// Factory: wrap an existing GeoModel tree
+// ----------------------------------------------------------------------------
+
+std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromWorld(PVConstLink world) {
+    if (!world)
+        throw std::runtime_error("SHiPGeometryService::fromWorld: world is null");
+    auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
+    svc->m_world = std::move(world);
+    return svc;
+}
+
+// ----------------------------------------------------------------------------
 // IGeometryService implementation
 // ----------------------------------------------------------------------------
 
