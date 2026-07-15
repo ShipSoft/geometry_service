@@ -16,9 +16,10 @@ namespace ship {
 
 /// Concrete implementation of IGeometryService backed by GeoModel.
 ///
-/// Two factory functions:
+/// Three factory functions:
 ///   SHiPGeometryService::fromSource()         — builds via SHiPGeometryBuilder
 ///   SHiPGeometryService::fromFile(dbPath)     — reads from a GeoModel .db file
+///   SHiPGeometryService::fromWorld(world)     — wraps an existing GeoModel tree
 class SHiPGeometryService final : public IGeometryService {
    public:
     /// Build geometry from the C++ SHiPGeometryBuilder.
@@ -26,6 +27,9 @@ class SHiPGeometryService final : public IGeometryService {
 
     /// Load geometry from a previously written GeoModel SQLite database.
     static std::unique_ptr<SHiPGeometryService> fromFile(const std::string& dbPath);
+
+    /// Wrap an already-built GeoModel world (e.g. a small test geometry).
+    static std::unique_ptr<SHiPGeometryService> fromWorld(PVConstLink world);
 
     ~SHiPGeometryService() override = default;
 
