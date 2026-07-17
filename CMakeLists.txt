@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
     SHiPGeometryService
-    VERSION 0.2.0
+    VERSION 0.3.0
     DESCRIPTION "SHiP geometry service library (framework-agnostic)"
     LANGUAGES CXX
 )
@@ -26,6 +26,7 @@ find_package(GeoModelCore CONFIG REQUIRED)
 find_package(GeoModelIO CONFIG REQUIRED)
 find_package(GeoModelG4 CONFIG REQUIRED)
 find_package(Geant4 REQUIRED)
+find_package(Threads REQUIRED)
 
 # Resolve install prefixes from the *_DIR cache variables set by find_package.
 # These are embedded in the installed config so find_dependency succeeds
@@ -43,6 +44,7 @@ add_library(
     SHiPGeometryService
     src/SHiPGeometryService.cpp
     src/G4RayScanner.cpp
+    src/GeometryThread.cpp
 )
 
 target_include_directories(
@@ -52,12 +54,12 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
-# GeoModelKernel (PVConstLink) and Geant4 (G4RayScanner.h holds a
-# G4Navigator by value) appear in public headers; everything else is
-# implementation detail.
+# GeoModelKernel (PVConstLink), Geant4 (G4RayScanner.h holds a G4Navigator
+# by value) and std::thread (GeometryThread.h) appear in public headers;
+# everything else is implementation detail.
 target_link_libraries(
     SHiPGeometryService
-    PUBLIC GeoModelCore::GeoModelKernel ${Geant4_LIBRARIES}
+    PUBLIC GeoModelCore::GeoModelKernel ${Geant4_LIBRARIES} Threads::Threads
     PRIVATE
         SHiPGeometry::SHiPGeometry
         GeoModelIO::GeoModelDBManager

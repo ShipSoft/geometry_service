@@ -12,7 +12,9 @@
 #include <GeoModelRead/ReadGeoModel.h>
 #include <SHiPGeometry/SHiPGeometry.h>
 #include <filesystem>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -46,6 +48,31 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(const std::st
     svc->m_world = reader.buildGeoModel();
     if (!svc->m_world)
         throw std::runtime_error("SHiPGeometryService::fromFile: buildGeoModel returned null");
+    return svc;
+}
+
+// ----------------------------------------------------------------------------
+// Factory: process-wide shared instance per geometry file
+// ----------------------------------------------------------------------------
+
+std::shared_ptr<SHiPGeometryService> SHiPGeometryService::sharedFromFile(
+    const std::string& dbPath) {
+    static std::mutex registryMutex;
+    static std::map<std::string, std::weak_ptr<SHiPGeometryService>> registry;
+
+    // Canonicalisation needs an existing file; fromFile would also reject a
+    // missing one, but only after the registry lookup keyed a bogus path.
+    if (!std::filesystem::is_regular_file(dbPath))
+        throw std::runtime_error("SHiPGeometryService::sharedFromFile: no such file: " + dbPath);
+    const auto key = std::filesystem::canonical(dbPath).string();
+
+    // The lock is held across the load so concurrent first callers cannot
+    // both read the file; contention is limited to job initialisation.
+    std::lock_guard lk{registryMutex};
+    if (auto existing = registry[key].lock())
+        return existing;
+    std::shared_ptr<SHiPGeometryService> svc = fromFile(key);
+    registry[key] = svc;
     return svc;
 }
 

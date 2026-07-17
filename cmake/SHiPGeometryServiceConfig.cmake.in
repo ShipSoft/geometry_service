@@ -18,6 +18,7 @@ find_dependency(GeoModelCore CONFIG REQUIRED)
 find_dependency(GeoModelIO CONFIG REQUIRED)
 find_dependency(GeoModelG4 CONFIG REQUIRED)
 find_dependency(Geant4 REQUIRED)
+find_dependency(Threads REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceTargets.cmake")
 

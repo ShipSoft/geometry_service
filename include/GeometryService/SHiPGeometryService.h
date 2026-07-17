@@ -28,6 +28,20 @@ class SHiPGeometryService final : public IGeometryService {
     /// Load geometry from a previously written GeoModel SQLite database.
     static std::unique_ptr<SHiPGeometryService> fromFile(const std::string& dbPath);
 
+    /// Process-wide shared instance per geometry file, keyed by the
+    /// canonical path. The first caller loads the file; later callers —
+    /// from any plugin linking this library — get the same instance, so
+    /// the GeoModel tree is loaded and converted at most once per process
+    /// and freed once the last owner releases it.
+    ///
+    /// All conversion and navigation on a shared instance must run on
+    /// ship::geometry_thread() (see GeometryThread.h): Geant4 permits only
+    /// one geometry-creating thread per process. Caveat: once a converted
+    /// instance has expired, no new GeoModel->Geant4 conversion may follow
+    /// in the same process — GeoModel2G4 caches conversions in static maps
+    /// keyed by GeoModel node pointers, which a freed tree leaves dangling.
+    static std::shared_ptr<SHiPGeometryService> sharedFromFile(const std::string& dbPath);
+
     /// Wrap an already-built GeoModel world (e.g. a small test geometry).
     static std::unique_ptr<SHiPGeometryService> fromWorld(PVConstLink world);
 

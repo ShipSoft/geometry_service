@@ -32,3 +32,18 @@ target_link_libraries(
 )
 
 catch_discover_tests(test_ray_scanner)
+
+add_executable(test_geometry_thread test_geometry_thread.cpp)
+
+# GeoModelWrite/GeoModelDBManager: the registry tests write temporary .db
+# files to load through sharedFromFile.
+target_link_libraries(
+    test_geometry_thread
+    PRIVATE
+        SHiPGeometryService
+        Catch2::Catch2WithMain
+        GeoModelIO::GeoModelDBManager
+        GeoModelIO::GeoModelWrite
+)
+
+catch_discover_tests(test_geometry_thread)

@@ -17,7 +17,7 @@ requires-pixi = ">=0.68"
 # checkout: `shipgeometry = { path = "../geometry" }`.
 [package]
 name = "shipgeometryservice"
-version = "0.1.0"
+version = "0.3.0"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.*" }
