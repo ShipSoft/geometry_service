@@ -44,8 +44,10 @@ void GeometryThread::loop() {
 }
 
 GeometryThread& geometry_thread() {
-    static GeometryThread thread;
-    return thread;
+    // Intentionally leaked: the thread must outlive static teardown, where
+    // store destructors may still post tasks (see the header contract).
+    static GeometryThread* thread = new GeometryThread;
+    return *thread;
 }
 
 }  // namespace ship
