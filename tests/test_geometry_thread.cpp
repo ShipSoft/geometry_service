@@ -149,6 +149,30 @@ TEST_CASE("SharedFromFileTest.ExpiredEntryIsReloaded", "[shared_registry]") {
     std::filesystem::remove_all(dir);
 }
 
+TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]") {
+    auto dir = testDir();
+    writeTestDb(dir / "world.db");
+    auto path = (dir / "world.db").string();
+    auto& gt = ship::geometry_thread();
+
+    auto first = SHiPGeometryService::sharedFromFile(path);
+    REQUIRE(gt.run([&] { return first->geant4WorldLogical(); }) != nullptr);
+    first.reset();  // converted instance expires; its GeoModel tree is retained
+
+    auto reloaded = SHiPGeometryService::sharedFromFile(path);
+    CHECK(gt.run([&] { return reloaded->geant4WorldLogical(); }) != nullptr);
+
+    // Clean the stores on the geometry thread (see the final test for why
+    // leaving them to static teardown on the main thread would segfault).
+    gt.run([&] {
+        G4GeometryManager::GetInstance()->OpenGeometry();
+        G4PhysicalVolumeStore::Clean();
+        G4LogicalVolumeStore::Clean();
+        G4SolidStore::Clean();
+    });
+    std::filesystem::remove_all(dir);
+}
+
 TEST_CASE("SharedFromFileTest.MissingFileThrows", "[shared_registry]") {
     CHECK_THROWS_AS(SHiPGeometryService::sharedFromFile("/nonexistent/path.db"),
                     std::runtime_error);

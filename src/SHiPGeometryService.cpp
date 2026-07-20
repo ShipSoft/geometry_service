@@ -17,6 +17,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace ship {
 
@@ -102,6 +103,15 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
         m_g4WorldLV = builder.Build(m_world);
         if (!m_g4WorldLV)
             throw std::runtime_error("SHiPGeometryService: GeoModel→Geant4 conversion failed");
+        // GeoModel2G4 caches conversions in static maps keyed by GeoModel
+        // node pointers, so a converted tree must never be freed: recycled
+        // node addresses would turn the cache into dangling lookups. Retain
+        // every converted tree for the process lifetime (leaked so the nodes
+        // also survive static teardown).
+        static std::mutex retainedMutex;
+        static auto* retained = new std::vector<PVConstLink>;
+        std::lock_guard lk{retainedMutex};
+        retained->push_back(m_world);
     });
     return m_g4WorldLV;
 }
