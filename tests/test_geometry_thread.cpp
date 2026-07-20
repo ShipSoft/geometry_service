@@ -142,10 +142,13 @@ TEST_CASE("SharedFromFileTest.ExpiredEntryIsReloaded", "[shared_registry]") {
     writeTestDb(dir / "world.db");
     auto path = (dir / "world.db").string();
     auto first = SHiPGeometryService::sharedFromFile(path);
-    auto* raw = first.get();
+    std::weak_ptr<SHiPGeometryService> weak{first};
     first.reset();  // last owner: the registry's weak_ptr expires
+    CHECK(weak.expired());
     auto reloaded = SHiPGeometryService::sharedFromFile(path);
-    CHECK(reloaded.get() != raw);
+    // A fresh instance, not the destroyed one: compare ownership rather
+    // than addresses, which the allocator may reuse.
+    CHECK((weak.owner_before(reloaded) || reloaded.owner_before(weak)));
     std::filesystem::remove_all(dir);
 }
 
