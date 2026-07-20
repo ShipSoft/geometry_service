@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-07-20
+
+### Features
+
+- Add a process-wide geometry thread and shared service registry
+
+### Bug Fixes
+
+- Construct the geometry thread only via geometry_thread() and never tear it down
+- Retain converted GeoModel trees for the process lifetime
+
+### Testing
+
+- Compare ownership instead of addresses in reload test
 ## [0.2.0] - 2026-07-16
 
 ### Features
