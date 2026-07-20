@@ -24,7 +24,6 @@ namespace ship {
 /// threads concurrently: tasks queue and run one at a time.
 class GeometryThread {
    public:
-    GeometryThread();
     ~GeometryThread();
 
     GeometryThread(const GeometryThread&) = delete;
@@ -49,6 +48,11 @@ class GeometryThread {
     }
 
    private:
+    // Constructible only through geometry_thread(): a second instance would
+    // break the single geometry-creating-thread invariant documented there.
+    GeometryThread();
+    friend GeometryThread& geometry_thread();
+
     void post(std::function<void()> task);
     void loop();
 
