@@ -6,6 +6,8 @@
 #include "GeometryService/IGeometryService.h"
 
 #include <GeoModelKernel/GeoVPhysVol.h>
+#include <exception>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -16,17 +18,19 @@ namespace ship {
 
 /// Concrete implementation of IGeometryService backed by GeoModel.
 ///
-/// Three factory functions:
-///   SHiPGeometryService::fromSource()         — builds via SHiPGeometryBuilder
-///   SHiPGeometryService::fromFile(dbPath)     — reads from a GeoModel .db file
-///   SHiPGeometryService::fromWorld(world)     — wraps an existing GeoModel tree
+/// Four factory functions:
+///   SHiPGeometryService::fromSource()          — builds via SHiPGeometryBuilder
+///   SHiPGeometryService::fromFile(dbPath)      — reads from a GeoModel .db file
+///   SHiPGeometryService::sharedFromFile(dbPath)— process-wide shared instance
+///   SHiPGeometryService::fromWorld(world)      — wraps an existing GeoModel tree
 class SHiPGeometryService final : public IGeometryService {
    public:
     /// Build geometry from the C++ SHiPGeometryBuilder.
-    static std::unique_ptr<SHiPGeometryService> fromSource();
+    [[nodiscard]] static std::unique_ptr<SHiPGeometryService> fromSource();
 
     /// Load geometry from a previously written GeoModel SQLite database.
-    static std::unique_ptr<SHiPGeometryService> fromFile(const std::string& dbPath);
+    [[nodiscard]] static std::unique_ptr<SHiPGeometryService> fromFile(
+        const std::filesystem::path& dbPath);
 
     /// Process-wide shared instance per geometry file, keyed by the
     /// canonical path. The first caller loads the file; later callers —
@@ -39,10 +43,11 @@ class SHiPGeometryService final : public IGeometryService {
     /// one geometry-creating thread per process. Converted GeoModel trees
     /// are retained for the process lifetime (see geant4WorldLogical), so
     /// reloading a file after a converted instance has expired is safe.
-    static std::shared_ptr<SHiPGeometryService> sharedFromFile(const std::string& dbPath);
+    [[nodiscard]] static std::shared_ptr<SHiPGeometryService> sharedFromFile(
+        const std::filesystem::path& dbPath);
 
     /// Wrap an already-built GeoModel world (e.g. a small test geometry).
-    static std::unique_ptr<SHiPGeometryService> fromWorld(PVConstLink world);
+    [[nodiscard]] static std::unique_ptr<SHiPGeometryService> fromWorld(PVConstLink world);
 
     ~SHiPGeometryService() override = default;
 
@@ -63,6 +68,7 @@ class SHiPGeometryService final : public IGeometryService {
     PVConstLink m_world;  ///< intrusive ref-counted GeoModel tree
     mutable std::once_flag m_g4ConversionDone;
     G4LogicalVolume* m_g4WorldLV{nullptr};  ///< written once via call_once
+    std::exception_ptr m_conversionError;   ///< sticky conversion failure
 };
 
 }  // namespace ship
