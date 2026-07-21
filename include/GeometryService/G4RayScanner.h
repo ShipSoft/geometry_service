@@ -38,10 +38,16 @@ struct RayScan {
 /// NOT thread-safe: with a multithreaded Geant4 build, logical/physical
 /// volumes carry thread-local state, so construct and use the scanner on the
 /// thread that built the Geant4 volumes.
+///
+/// G4GeometryManager's closed state is a single process-wide flag, so at
+/// most one scanner may be alive while the geometry is closed: constructing
+/// a scanner while another one (or a run manager) holds the geometry closed
+/// throws instead of silently scanning without voxelisation.
 class G4RayScanner {
    public:
     /// Wraps `top` in a private world placement and closes (voxelises) that
-    /// tree via G4GeometryManager. Throws std::invalid_argument on null.
+    /// tree via G4GeometryManager. Throws std::invalid_argument on null and
+    /// std::logic_error if the Geant4 geometry is already closed.
     explicit G4RayScanner(G4LogicalVolume* top);
 
     /// Re-opens the scanned tree and removes the private placement (skipped
@@ -57,7 +63,8 @@ class G4RayScanner {
     /// (normalised internally) up to the world boundary. A ray starting
     /// outside the world is first advanced to its entry point (recorded as
     /// `entry`); a ray that misses the world returns no segments. Adjacent
-    /// segments in the same material are merged.
+    /// segments in the same material are merged. Throws std::runtime_error
+    /// if navigation fails to terminate (step-limit safeguard).
     [[nodiscard]] RayScan scan(const G4ThreeVector& origin, const G4ThreeVector& direction) const;
 
    private:
