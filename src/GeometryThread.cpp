@@ -8,16 +8,8 @@
 
 namespace ship {
 
-GeometryThread::GeometryThread() : m_thread{[this] { loop(); }} {}
-
-GeometryThread::~GeometryThread() {
-    {
-        std::lock_guard lk{m_mutex};
-        m_stop = true;
-    }
-    m_cv.notify_one();
-    m_thread.join();
-}
+GeometryThread::GeometryThread()
+    : m_thread{[this](std::stop_token stopToken) { loop(std::move(stopToken)); }} {}
 
 void GeometryThread::post(std::function<void()> task) {
     {
@@ -27,19 +19,16 @@ void GeometryThread::post(std::function<void()> task) {
     m_cv.notify_one();
 }
 
-void GeometryThread::loop() {
+void GeometryThread::loop(std::stop_token stopToken) {
     std::unique_lock lk{m_mutex};
-    while (true) {
-        m_cv.wait(lk, [this] { return m_stop || !m_tasks.empty(); });
-        if (!m_tasks.empty()) {
-            auto task = std::move(m_tasks.front());
-            m_tasks.pop_front();
-            lk.unlock();
-            task();
-            lk.lock();
-        } else if (m_stop) {
-            return;
-        }
+    // The interruptible wait returns false only once a stop is requested
+    // and the queue is empty, so pending tasks are drained before shutdown.
+    while (m_cv.wait(lk, stopToken, [this] { return !m_tasks.empty(); })) {
+        auto task = std::move(m_tasks.front());
+        m_tasks.pop_front();
+        lk.unlock();
+        task();
+        lk.lock();
     }
 }
 

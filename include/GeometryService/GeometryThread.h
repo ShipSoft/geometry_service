@@ -6,11 +6,13 @@
 #include <thread>
 #include <type_traits>
 
+#include <concepts>
 #include <condition_variable>
 #include <deque>
 #include <functional>
 #include <future>
 #include <mutex>
+#include <stop_token>
 #include <utility>
 
 namespace ship {
@@ -24,7 +26,8 @@ namespace ship {
 /// threads concurrently: tasks queue and run one at a time.
 class GeometryThread {
    public:
-    ~GeometryThread();
+    // jthread requests stop and joins; queued tasks are drained first.
+    ~GeometryThread() = default;
 
     GeometryThread(const GeometryThread&) = delete;
     GeometryThread& operator=(const GeometryThread&) = delete;
@@ -34,7 +37,7 @@ class GeometryThread {
     /// Run f on the geometry thread and return its result. Reentrant: a call
     /// made from a task already running on the geometry thread executes f
     /// inline instead of deadlocking on its own queue slot.
-    template <typename F>
+    template <std::invocable F>
     std::invoke_result_t<F&> run(F&& f) {
         if (std::this_thread::get_id() == m_thread.get_id())
             return f();
@@ -54,13 +57,12 @@ class GeometryThread {
     friend GeometryThread& geometry_thread();
 
     void post(std::function<void()> task);
-    void loop();
+    void loop(std::stop_token stopToken);
 
     std::mutex m_mutex;
-    std::condition_variable m_cv;
+    std::condition_variable_any m_cv;
     std::deque<std::function<void()>> m_tasks;
-    bool m_stop{false};
-    std::thread m_thread;  ///< last: starts using the members above
+    std::jthread m_thread;  ///< last: starts using the members above
 };
 
 /// The process-wide Geant4 geometry thread, shared by every geometry user
