@@ -6,24 +6,23 @@
 
 include(CMakeFindDependencyMacro)
 
-# Propagate dependency prefixes so find_dependency succeeds without
-# downstream consumers needing to add transitive deps to CMAKE_PREFIX_PATH.
+# Hint the build-time dependency prefixes so find_dependency succeeds
+# without downstream consumers needing to add transitive deps to
+# CMAKE_PREFIX_PATH. HINTS (searched before the default paths) avoids
+# mutating the consumer's CMAKE_PREFIX_PATH, which a failing
+# find_dependency's early return would leave un-restored.
 set(_SHiPGS_extra_prefixes "@_geometry_prefix@")
 list(FILTER _SHiPGS_extra_prefixes EXCLUDE REGEX "^$")
-set(_SHiPGS_saved_CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}")
-list(APPEND CMAKE_PREFIX_PATH ${_SHiPGS_extra_prefixes})
 
-find_dependency(SHiPGeometry CONFIG REQUIRED)
-find_dependency(GeoModelCore CONFIG REQUIRED)
-find_dependency(GeoModelIO CONFIG REQUIRED)
-find_dependency(GeoModelG4 CONFIG REQUIRED)
-find_dependency(Geant4 REQUIRED)
+find_dependency(SHiPGeometry CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(GeoModelCore CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(GeoModelIO CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(GeoModelG4 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(Geant4 REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(Threads REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceTargets.cmake")
 
 check_required_components(SHiPGeometryService)
 
-set(CMAKE_PREFIX_PATH "${_SHiPGS_saved_CMAKE_PREFIX_PATH}")
-unset(_SHiPGS_saved_CMAKE_PREFIX_PATH)
 unset(_SHiPGS_extra_prefixes)
