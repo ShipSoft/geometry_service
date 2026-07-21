@@ -13,6 +13,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <memory>
+#include <stdexcept>
 
 using Catch::Matchers::WithinAbs;
 using ship::G4RayScanner;
@@ -22,6 +23,8 @@ namespace {
 
 // One service and G4 conversion shared by all tests: converted volumes live
 // in the global Geant4 stores, so repeated conversions would pile up copies.
+// (Conversion runs on the main thread — fine here because this binary is the
+// only Geant4 geometry user; multi-user code must use ship::geometry_thread().)
 SHiPGeometryService& service() {
     static std::unique_ptr<SHiPGeometryService> svc = [] {
         auto s = SHiPGeometryService::fromWorld(buildTestWorld());
@@ -31,15 +34,16 @@ SHiPGeometryService& service() {
     return *svc;
 }
 
-G4RayScanner& worldScanner() {
-    static G4RayScanner scanner{service().geant4WorldLogical()};
-    return scanner;
+// Scanners are per-test: G4GeometryManager's closed flag is process-global,
+// so only one scanner may be alive at a time (see G4RayScanner.h).
+G4RayScanner makeWorldScanner() {
+    return G4RayScanner{service().geant4WorldLogical()};
 }
 
 }  // namespace
 
 TEST_CASE("RayScannerTest.AxialRayFromOutsideCrossesAllVolumes", "[ray_scanner]") {
-    auto [entry, segments] = worldScanner().scan({0, 0, -1500}, {0, 0, 1});
+    auto [entry, segments] = makeWorldScanner().scan({0, 0, -1500}, {0, 0, 1});
     CHECK_THAT(entry, WithinAbs(500., 1e-6));  // world entry jump to z = -1000
     REQUIRE(segments.size() == 5U);
     CHECK(segments[0].material->GetName() == "TestGas");
@@ -55,7 +59,7 @@ TEST_CASE("RayScannerTest.AxialRayFromOutsideCrossesAllVolumes", "[ray_scanner]"
 }
 
 TEST_CASE("RayScannerTest.RayFromInsideStartsAtOrigin", "[ray_scanner]") {
-    auto [entry, segments] = worldScanner().scan({0, 0, 0}, {0, 0, 1});
+    auto [entry, segments] = makeWorldScanner().scan({0, 0, 0}, {0, 0, 1});
     CHECK(entry == 0.);
     REQUIRE(segments.size() == 3U);
     CHECK(segments[0].material->GetName() == "TestGas");
@@ -66,17 +70,28 @@ TEST_CASE("RayScannerTest.RayFromInsideStartsAtOrigin", "[ray_scanner]") {
     CHECK_THAT(segments[2].length, WithinAbs(700., 1e-6));
 }
 
+TEST_CASE("RayScannerTest.RayStartingOnWorldSurfaceScansFullWorld", "[ray_scanner]") {
+    // On-surface start: no entry jump; the direction-aware locate resolves
+    // the boundary point to the volume ahead of the ray.
+    auto [entry, segments] = makeWorldScanner().scan({0, 0, -kWorldHalf}, {0, 0, 1});
+    CHECK(entry == 0.);
+    REQUIRE(segments.size() == 5U);
+    CHECK_THAT(segments[0].length, WithinAbs(500., 1e-6));
+    CHECK_THAT(segments[4].length, WithinAbs(700., 1e-6));
+}
+
 TEST_CASE("RayScannerTest.UnnormalisedDirectionIsAccepted", "[ray_scanner]") {
-    auto [entry, segments] = worldScanner().scan({0, 0, 0}, {0, 0, 42.});
+    auto [entry, segments] = makeWorldScanner().scan({0, 0, 0}, {0, 0, 42.});
     CHECK(entry == 0.);
     REQUIRE(segments.size() == 3U);
     CHECK_THAT(segments[1].length, WithinAbs(200., 1e-6));
 }
 
 TEST_CASE("RayScannerTest.MissingRayReturnsEmpty", "[ray_scanner]") {
-    CHECK(worldScanner().scan({0, 5000, -1500}, {0, 0, 1}).segments.empty());
+    auto scanner = makeWorldScanner();
+    CHECK(scanner.scan({0, 5000, -1500}, {0, 0, 1}).segments.empty());
     // Pointing away from the world.
-    CHECK(worldScanner().scan({0, 0, -1500}, {0, 0, -1}).segments.empty());
+    CHECK(scanner.scan({0, 0, -1500}, {0, 0, -1}).segments.empty());
 }
 
 TEST_CASE("RayScannerTest.DaughterVolumeScanUsesItsLocalFrame", "[ray_scanner]") {
@@ -94,7 +109,7 @@ TEST_CASE("RayScannerTest.DaughterVolumeScanUsesItsLocalFrame", "[ray_scanner]")
 
 TEST_CASE("RayScannerTest.ConvertedDensitiesMatchGeoModel", "[ray_scanner]") {
     // Guards GeoModel2G4 density unit handling end to end.
-    auto [entry, segments] = worldScanner().scan({0, 0, -1500}, {0, 0, 1});
+    auto [entry, segments] = makeWorldScanner().scan({0, 0, -1500}, {0, 0, 1});
     (void)entry;
     REQUIRE(segments.size() == 5U);
     CHECK_THAT(segments[0].material->GetDensity() / (CLHEP::g / CLHEP::cm3),
@@ -107,4 +122,13 @@ TEST_CASE("RayScannerTest.ConvertedDensitiesMatchGeoModel", "[ray_scanner]") {
 
 TEST_CASE("RayScannerTest.NullTopVolumeThrows", "[ray_scanner]") {
     CHECK_THROWS_AS(G4RayScanner{nullptr}, std::invalid_argument);
+}
+
+TEST_CASE("RayScannerTest.SecondScannerWhileFirstAliveThrows", "[ray_scanner]") {
+    // The closed flag is process-global: a second scanner could not voxelise
+    // its tree, so its constructor refuses instead of degrading silently.
+    auto scanner = makeWorldScanner();
+    auto* ironLV = service().getLogicalVolume("TestIronBox");
+    REQUIRE(ironLV != nullptr);
+    CHECK_THROWS_AS(G4RayScanner{ironLV}, std::logic_error);
 }

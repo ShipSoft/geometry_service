@@ -19,6 +19,14 @@ namespace ship {
 G4RayScanner::G4RayScanner(G4LogicalVolume* top) {
     if (!top)
         throw std::invalid_argument("G4RayScanner: top logical volume is null");
+    // G4GeometryManager's closed state is one process-wide flag, not
+    // per-tree: closing while already closed (another scanner alive, or a
+    // run manager mid-run) would be a silent no-op and this scanner would
+    // navigate without voxelisation. Fail loud instead.
+    if (G4GeometryManager::GetInstance()->IsGeometryClosed())
+        throw std::logic_error(
+            "G4RayScanner: Geant4 geometry is already closed "
+            "(another G4RayScanner alive, or a run in progress)");
     m_world = new G4PVPlacement(nullptr, G4ThreeVector(), top, top->GetName() + "_rayscan_world",
                                 nullptr, false, 0);
     // Voxelise only this tree; a full CloseGeometry() would also close any
@@ -33,7 +41,11 @@ G4RayScanner::~G4RayScanner() {
     auto* store = G4PhysicalVolumeStore::GetInstance();
     if (std::find(store->begin(), store->end(), m_world) == store->end())
         return;
-    G4GeometryManager::GetInstance()->OpenGeometry(m_world);
+    // Deopt only while the geometry is closed (OpenGeometry is a no-op
+    // otherwise). Caveat: the closed flag is global, so if a run manager
+    // re-closed the full geometry meanwhile, this also flips its state open.
+    if (G4GeometryManager::GetInstance()->IsGeometryClosed())
+        G4GeometryManager::GetInstance()->OpenGeometry(m_world);
     delete m_world;
 }
 
@@ -62,7 +74,8 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     // Boundary count is bounded by the geometry's depth times its daughters;
     // anything near the cap indicates a navigation loop, not a real geometry.
     constexpr int max_steps = 100000;
-    for (int i = 0; volume && i < max_steps; ++i) {
+    int steps = 0;
+    for (; volume && steps < max_steps; ++steps) {
         double safety = 0.;
         const double step = m_navigator.ComputeStep(point, dir, kInfinity, safety);
         if (step == kInfinity)
@@ -79,6 +92,9 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
         volume = m_navigator.LocateGlobalPointAndSetup(point, &dir, /*pRelativeSearch=*/true,
                                                        /*ignoreDirection=*/false);
     }
+    // A truncated scan must not look like a clean world exit.
+    if (steps == max_steps)
+        throw std::runtime_error("G4RayScanner::scan: step limit reached (navigation loop?)");
     return result;
 }
 
