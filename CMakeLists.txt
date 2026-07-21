@@ -54,9 +54,18 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
+# CMAKE_CXX_STANDARD above is directory-scope only and not exported;
+# without this, the installed target carries no language requirement and
+# consumers on an older default standard get header errors instead of a
+# clear CMake diagnostic.
+target_compile_features(SHiPGeometryService PUBLIC cxx_std_20)
+
 # GeoModelKernel (PVConstLink), Geant4 (G4RayScanner.h holds a G4Navigator
 # by value) and std::thread (GeometryThread.h) appear in public headers;
-# everything else is implementation detail.
+# everything else is implementation detail. Geant4_LIBRARIES expands to
+# imported target names (modern Geant4 configs), which the exported target
+# records verbatim; the installed config's find_dependency(Geant4)
+# re-creates them downstream.
 target_link_libraries(
     SHiPGeometryService
     PUBLIC GeoModelCore::GeoModelKernel ${Geant4_LIBRARIES} Threads::Threads
