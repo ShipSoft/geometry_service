@@ -160,10 +160,18 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
 
     auto first = SHiPGeometryService::sharedFromFile(path);
     REQUIRE(gt.run([&] { return first->geant4WorldLogical(); }) != nullptr);
+    auto* firstIron = gt.run([&] { return first->getLogicalVolume("TestIronBox"); });
+    REQUIRE(firstIron != nullptr);
     first.reset();  // converted instance expires; its GeoModel tree is retained
 
     auto reloaded = SHiPGeometryService::sharedFromFile(path);
     CHECK(gt.run([&] { return reloaded->geant4WorldLogical(); }) != nullptr);
+    // Name lookup is scoped to the service's own tree: the retained first
+    // conversion left identically named volumes in the global store, and a
+    // store-wide search would return the stale first match.
+    auto* reloadedIron = gt.run([&] { return reloaded->getLogicalVolume("TestIronBox"); });
+    REQUIRE(reloadedIron != nullptr);
+    CHECK(reloadedIron != firstIron);
 
     // Clean the stores on the geometry thread (see the final test for why
     // leaving them to static teardown on the main thread would segfault).
@@ -189,8 +197,9 @@ TEST_CASE("SharedFromFileTest.MissingFileThrows", "[shared_registry]") {
 // (world placement, region, full geometry close) share the geometry through
 // ship::geometry_thread(); a worker-style thread replicates the split-class
 // arrays and reads. Before the shared thread existed, the second user's
-// touch of the converted volumes segfaulted (Geant4 bug #2747). Runs last
-// in this binary: it populates the Geant4 stores.
+// touch of the converted volumes segfaulted (Geant4 bug #2747). The stores
+// are cleaned at the end so later tests (and static teardown) see none of
+// the volumes created here.
 TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_thread]") {
     auto& gt = ship::geometry_thread();
 

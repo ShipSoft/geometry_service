@@ -19,12 +19,15 @@ class IGeometryService {
     /// GeoModel world physical volume (const — tree is immutable after build).
     [[nodiscard]] virtual const GeoVPhysVol* geoModelWorld() const = 0;
 
-    /// G4LogicalVolume* for the world. Triggers GeoModel2G4 on first call.
-    /// Must be called from within G4VUserDetectorConstruction::Construct().
+    /// G4LogicalVolume* for the world. Triggers GeoModel2G4 on first call,
+    /// which must run on the process-wide geometry thread
+    /// (ship::geometry_thread(), see GeometryThread.h) whenever more than
+    /// one thread touches Geant4 geometry.
     [[nodiscard]] virtual G4LogicalVolume* geant4WorldLogical() = 0;
 
-    /// Look up a G4LogicalVolume by name (via G4LogicalVolumeStore).
-    /// Valid only after geant4WorldLogical() has been called.
+    /// Look up a G4LogicalVolume by name within this service's converted
+    /// tree (depth-first). Returns nullptr before geant4WorldLogical() has
+    /// been called or when no such volume exists.
     [[nodiscard]] virtual G4LogicalVolume* getLogicalVolume(const std::string& name) const = 0;
 };
 
