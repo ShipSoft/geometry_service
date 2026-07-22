@@ -25,7 +25,7 @@ find_package(SHiPGeometry CONFIG REQUIRED)
 find_package(GeoModelCore CONFIG REQUIRED)
 find_package(GeoModelIO CONFIG REQUIRED)
 find_package(GeoModelG4 CONFIG REQUIRED)
-find_package(Geant4 REQUIRED)
+find_package(Geant4 CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 
 # Resolve install prefixes from the *_DIR cache variables set by find_package.

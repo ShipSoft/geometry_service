@@ -27,7 +27,8 @@ class IGeometryService {
 
     /// Look up a G4LogicalVolume by name within this service's converted
     /// tree (depth-first). Returns nullptr before geant4WorldLogical() has
-    /// been called or when no such volume exists.
+    /// been called or when no such volume exists; rethrows a stored
+    /// conversion failure instead of masking it as nullptr.
     [[nodiscard]] virtual G4LogicalVolume* getLogicalVolume(const std::string& name) const = 0;
 };
 
