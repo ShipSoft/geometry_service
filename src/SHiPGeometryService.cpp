@@ -37,6 +37,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace ship {
@@ -167,11 +168,17 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
 
 namespace {
 
-G4LogicalVolume* findLogicalVolume(G4LogicalVolume* lv, const std::string& name) {
+// Logical volumes form a DAG (daughters are shared across placements);
+// the visited set keeps the search linear in distinct volumes instead of
+// re-walking shared subtrees once per placement.
+G4LogicalVolume* findLogicalVolume(G4LogicalVolume* lv, const std::string& name,
+                                   std::unordered_set<const G4LogicalVolume*>& visited) {
+    if (!visited.insert(lv).second)
+        return nullptr;
     if (lv->GetName() == name)
         return lv;
     for (std::size_t i = 0; i < lv->GetNoDaughters(); ++i)
-        if (auto* found = findLogicalVolume(lv->GetDaughter(i)->GetLogicalVolume(), name))
+        if (auto* found = findLogicalVolume(lv->GetDaughter(i)->GetLogicalVolume(), name, visited))
             return found;
     return nullptr;
 }
@@ -179,13 +186,17 @@ G4LogicalVolume* findLogicalVolume(G4LogicalVolume* lv, const std::string& name)
 }  // namespace
 
 G4LogicalVolume* SHiPGeometryService::getLogicalVolume(const std::string& name) const {
+    // A failed conversion must not look like "not converted yet".
+    if (m_conversionError)
+        std::rethrow_exception(m_conversionError);
     // Search this service's own tree rather than G4LogicalVolumeStore:
     // retained trees of expired instances of the same file leave
     // identically named volumes in the store, and a store lookup would
     // return the first — stale — match.
     if (!m_g4WorldLV)
         return nullptr;
-    return findLogicalVolume(m_g4WorldLV, name);
+    std::unordered_set<const G4LogicalVolume*> visited;
+    return findLogicalVolume(m_g4WorldLV, name, visited);
 }
 
 }  // namespace ship

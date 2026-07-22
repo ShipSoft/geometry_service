@@ -18,7 +18,7 @@ find_dependency(SHiPGeometry CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelCore CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelIO CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelG4 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(Geant4 REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(Geant4 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(Threads REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceTargets.cmake")

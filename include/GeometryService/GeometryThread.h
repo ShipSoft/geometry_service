@@ -37,7 +37,10 @@ class GeometryThread {
     /// Run f on the geometry thread and return its result. Reentrant: a call
     /// made from a task already running on the geometry thread executes f
     /// inline instead of deadlocking on its own queue slot.
-    template <std::invocable F>
+    // Constrained on lvalue invocation: f is called as an lvalue here and
+    // by the packaged_task below.
+    template <typename F>
+        requires std::invocable<F&>
     std::invoke_result_t<F&> run(F&& f) {
         if (std::this_thread::get_id() == m_thread.get_id())
             return f();
