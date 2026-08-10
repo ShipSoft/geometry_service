@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-08-10
+
+### Features
+
+- Support the post-MR-612 GeoModel2G4 VolumeBuilder API
+
+### Bug Fixes
+
+- Fail loud when the ray scanner cannot voxelise or terminate
+- Harden geometry loading and scope volume lookup to the service
+- Address review feedback on PR #32
+
+### Refactor
+
+- Modernise GeometryThread with jthread and stop_token
+
+### Build
+
+- Export the C++ standard and hint dependency prefixes
 ## [0.3.0] - 2026-07-20
 
 ### Features
@@ -16,6 +35,10 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Compare ownership instead of addresses in reload test
+
+### Miscellaneous
+
+- *(release)* V0.3.0
 ## [0.2.0] - 2026-07-16
 
 ### Features
@@ -59,6 +82,7 @@ All notable changes to this project will be documented in this file.
 - Update pixi lock file
 - Enforce conventional commits in CI via commit-check
 - Add concurrency control and shared-config sync
+- *(release)* V0.2.0
 ## [0.1.0] - 2026-06-18
 
 ### Features

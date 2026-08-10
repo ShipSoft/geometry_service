@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(
     SHiPGeometryService
-    VERSION 0.3.0
+    VERSION 0.4.0
     DESCRIPTION "SHiP geometry service library (framework-agnostic)"
     LANGUAGES CXX
 )
