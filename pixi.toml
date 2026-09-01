@@ -53,7 +53,15 @@ nlohmann_json = "*"
 eigen-abi-devel = "*"
 
 [tasks]
-configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+# CMAKE_PREFIX_PATH is passed explicitly: conda-forge's cxx-compiler 2.x dropped
+# the *_linux-64 activation packages that used to export it, and without it CMake
+# prefers system libraries (e.g. /usr expat, via the pkg-config HINTS in
+# FindEXPAT) over the ones in this environment.
+configure = { cmd = """
+cmake -S . -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
+""" }
 build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure --no-tests=error", depends-on = ["build"] }
 
