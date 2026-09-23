@@ -32,8 +32,8 @@ extra-args = [
 # config reasons documented in the release recipe.
 [package.host-dependencies]
 shipgeometry = "*"
-geomodel-core = "*"
-geomodel-g4 = "*"
+geomodel-core = ">=6.30"
+geomodel-g4 = ">=6.30"
 geant4 = "*"
 # Geant4Config.cmake calls find_dependency() on EXPAT, ZLIB and Freetype, each
 # of which needs headers and a CMake config. Since the v1-recipe modernisation
@@ -54,7 +54,10 @@ make = "*"
 ninja = "*"
 git = "*"
 shipgeometry = "*"
-geomodel = ">=6.22"
+# >=6.30: GeoModel!612 replaced ExtParameterisedVolumeBuilder with a concrete
+# VolumeBuilder whose conversion caches are per-instance. SHiPGeometryService
+# builds against that API only.
+geomodel = ">=6.30"
 # Geant4 arrives here through geomodel, and its CMake config needs the same
 # three as [package.host-dependencies] above.
 expat = "*"
