@@ -7,24 +7,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4VPhysicalVolume.hh>
 
-// GeoModel MR 612 (GeoModelDev/GeoModel!612, our work item #135) merges
-// ExtParameterisedVolumeBuilder into a concrete VolumeBuilder whose
-// conversion caches are per-instance; support both APIs until the fix is
-// the only one in the wild. The header probe can be overridden (=0) to
-// force the new API when both header sets are visible (e.g. testing
-// against a locally built GeoModel next to the installed one).
-#ifndef SHIP_GEOMODEL2G4_STATIC_CACHES
-#if __has_include(<GeoModel2G4/ExtParameterisedVolumeBuilder.h>)
-#define SHIP_GEOMODEL2G4_STATIC_CACHES 1
-#else
-#define SHIP_GEOMODEL2G4_STATIC_CACHES 0
-#endif
-#endif
-#if SHIP_GEOMODEL2G4_STATIC_CACHES
-#include <GeoModel2G4/ExtParameterisedVolumeBuilder.h>
-#else
 #include <GeoModel2G4/VolumeBuilder.h>
-#endif
 #include <GeoModelDBManager/GMDBManager.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
@@ -38,7 +21,6 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 namespace ship {
 
@@ -129,31 +111,12 @@ const GeoVPhysVol* SHiPGeometryService::geoModelWorld() const {
 
 G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
     std::call_once(m_g4ConversionDone, [this]() {
-#if SHIP_GEOMODEL2G4_STATIC_CACHES
-        // Pre-MR-612 GeoModel2G4 caches conversions in static maps keyed by
-        // GeoModel node pointers, so a tree handed to the builder must never
-        // be freed: recycled node addresses would turn the cache into
-        // dangling lookups. Retain every such tree for the process lifetime
-        // (leaked so the nodes also survive static teardown) — before
-        // converting, so nodes cached by a partial, failed conversion stay
-        // alive too. With MR 612's per-instance caches this is unnecessary.
-        {
-            static std::mutex retainedMutex;
-            static auto* retained = new std::vector<PVConstLink>;
-            std::lock_guard lk{retainedMutex};
-            retained->push_back(m_world);
-        }
-#endif
         // A failed conversion is sticky: it can leave partially registered
-        // volumes in the Geant4 stores (and, pre-MR-612, half-populated
-        // static caches), so a retry could silently produce a mixed tree.
+        // volumes in the Geant4 stores, so a retry could silently produce a
+        // mixed tree.
         // Store the error and rethrow it on every call instead.
         try {
-#if SHIP_GEOMODEL2G4_STATIC_CACHES
-            ExtParameterisedVolumeBuilder builder("SHiP");
-#else
             VolumeBuilder builder{"SHiP"};
-#endif
             m_g4WorldLV = builder.Build(m_world);
             if (!m_g4WorldLV)
                 throw std::runtime_error("SHiPGeometryService: GeoModel→Geant4 conversion failed");
