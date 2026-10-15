@@ -12,6 +12,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 
@@ -131,4 +132,15 @@ TEST_CASE("RayScannerTest.SecondScannerWhileFirstAliveThrows", "[ray_scanner]") 
     auto* ironLV = service().getLogicalVolume("TestIronBox");
     REQUIRE(ironLV != nullptr);
     CHECK_THROWS_AS(G4RayScanner{ironLV}, std::logic_error);
+}
+
+TEST_CASE("RayScannerTest.ZeroDirectionThrows", "[ray_scanner]") {
+    // CLHEP's unit() hands a null vector back unchanged, so without a guard
+    // a zero direction would read as a miss (from outside) or navigate
+    // nowhere (from inside).
+    auto scanner = makeWorldScanner();
+    CHECK_THROWS_AS(scanner.scan({0, 0, -1500}, {0, 0, 0}), std::invalid_argument);
+    CHECK_THROWS_AS(scanner.scan({0, 0, 0}, {0, 0, 0}), std::invalid_argument);
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    CHECK_THROWS_AS(scanner.scan({0, 0, 0}, {0, 0, nan}), std::invalid_argument);
 }
