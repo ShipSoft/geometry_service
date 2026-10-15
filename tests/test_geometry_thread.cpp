@@ -162,7 +162,7 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
     REQUIRE(gt.run([&] { return first->geant4WorldLogical(); }) != nullptr);
     auto* firstIron = gt.run([&] { return first->getLogicalVolume("TestIronBox"); });
     REQUIRE(firstIron != nullptr);
-    first.reset();  // converted instance expires; its GeoModel tree is retained
+    first.reset();  // converted instance expires; its G4 volumes stay in the stores
 
     auto reloaded = SHiPGeometryService::sharedFromFile(path);
     CHECK(gt.run([&] { return reloaded->geant4WorldLogical(); }) != nullptr);
