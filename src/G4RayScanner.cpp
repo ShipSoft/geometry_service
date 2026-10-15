@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -28,12 +29,18 @@ G4RayScanner::G4RayScanner(G4LogicalVolume* top) {
         throw std::logic_error(
             "G4RayScanner: Geant4 geometry is already closed "
             "(another G4RayScanner alive, or a run in progress)");
-    m_world = new G4PVPlacement(nullptr, G4ThreeVector(), top, top->GetName() + "_rayscan_world",
-                                nullptr, false, 0);
+    // Owned locally until construction succeeds: the destructor does not run
+    // after a throw, and the placement has already registered itself in the
+    // physical-volume store.
+    auto world = std::make_unique<G4PVPlacement>(
+        nullptr, G4ThreeVector(), top, top->GetName() + "_rayscan_world", nullptr, false, 0);
+    m_navigator.SetWorldVolume(world.get());
     // Voxelise only this tree; a full CloseGeometry() would also close any
-    // other geometry living in the same process.
-    G4GeometryManager::GetInstance()->CloseGeometry(/*pOptimise=*/true, /*verbose=*/false, m_world);
-    m_navigator.SetWorldVolume(m_world);
+    // other geometry living in the same process. Last, so nothing that runs
+    // after it can throw and leave the geometry closed.
+    G4GeometryManager::GetInstance()->CloseGeometry(/*pOptimise=*/true, /*verbose=*/false,
+                                                    world.get());
+    m_world = world.release();
 }
 
 G4RayScanner::~G4RayScanner() {
