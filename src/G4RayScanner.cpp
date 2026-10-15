@@ -11,6 +11,7 @@
 #include <G4VSolid.hh>
 
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
@@ -50,6 +51,11 @@ G4RayScanner::~G4RayScanner() {
 }
 
 RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& direction) const {
+    // unit() hands a null vector back unchanged, and non-finite components
+    // would poison every step: reject both instead of reporting a miss.
+    const double mag2 = direction.mag2();
+    if (!std::isfinite(mag2) || mag2 <= 0.)
+        throw std::invalid_argument("G4RayScanner::scan: direction must be finite and non-zero");
     const G4ThreeVector dir = direction.unit();
     G4ThreeVector point = origin;
     RayScan result;

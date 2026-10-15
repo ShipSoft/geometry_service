@@ -63,8 +63,10 @@ class G4RayScanner {
     /// (normalised internally) up to the world boundary. A ray starting
     /// outside the world is first advanced to its entry point (recorded as
     /// `entry`); a ray that misses the world returns no segments. Adjacent
-    /// segments in the same material are merged. Throws std::runtime_error
-    /// if navigation fails to terminate (step-limit safeguard).
+    /// segments in the same material are merged. Throws
+    /// std::invalid_argument for a zero or non-finite direction, and
+    /// std::runtime_error if navigation fails to terminate (step-limit
+    /// safeguard).
     [[nodiscard]] RayScan scan(const G4ThreeVector& origin, const G4ThreeVector& direction) const;
 
    private:
