@@ -20,6 +20,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace ship {
@@ -109,6 +110,24 @@ const GeoVPhysVol* SHiPGeometryService::geoModelWorld() const {
     return m_world.get();
 }
 
+namespace {
+
+// Logical volumes form a DAG (daughters are shared across placements);
+// the visited set keeps the walk linear in distinct volumes instead of
+// re-walking shared subtrees once per placement. Pre-order with emplace
+// keeps the first volume of each name, as a depth-first search would.
+void indexLogicalVolumes(G4LogicalVolume* lv,
+                         std::unordered_map<std::string, G4LogicalVolume*>& index,
+                         std::unordered_set<const G4LogicalVolume*>& visited) {
+    if (!visited.insert(lv).second)
+        return;
+    index.emplace(lv->GetName(), lv);
+    for (std::size_t i = 0; i < lv->GetNoDaughters(); ++i)
+        indexLogicalVolumes(lv->GetDaughter(i)->GetLogicalVolume(), index, visited);
+}
+
+}  // namespace
+
 G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
     std::call_once(m_g4ConversionDone, [this]() {
         // A failed conversion is sticky: it can leave partially registered
@@ -120,6 +139,8 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
             m_g4WorldLV = builder.Build(m_world);
             if (!m_g4WorldLV)
                 throw std::runtime_error("SHiPGeometryService: GeoModel→Geant4 conversion failed");
+            std::unordered_set<const G4LogicalVolume*> visited;
+            indexLogicalVolumes(m_g4WorldLV, m_lvByName, visited);
         } catch (...) {
             m_conversionError = std::current_exception();
         }
@@ -129,37 +150,16 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
     return m_g4WorldLV;
 }
 
-namespace {
-
-// Logical volumes form a DAG (daughters are shared across placements);
-// the visited set keeps the search linear in distinct volumes instead of
-// re-walking shared subtrees once per placement.
-G4LogicalVolume* findLogicalVolume(G4LogicalVolume* lv, const std::string& name,
-                                   std::unordered_set<const G4LogicalVolume*>& visited) {
-    if (!visited.insert(lv).second)
-        return nullptr;
-    if (lv->GetName() == name)
-        return lv;
-    for (std::size_t i = 0; i < lv->GetNoDaughters(); ++i)
-        if (auto* found = findLogicalVolume(lv->GetDaughter(i)->GetLogicalVolume(), name, visited))
-            return found;
-    return nullptr;
-}
-
-}  // namespace
-
 G4LogicalVolume* SHiPGeometryService::getLogicalVolume(const std::string& name) const {
     // A failed conversion must not look like "not converted yet".
     if (m_conversionError)
         std::rethrow_exception(m_conversionError);
-    // Search this service's own tree rather than G4LogicalVolumeStore:
+    // Index this service's own tree rather than search G4LogicalVolumeStore:
     // retained trees of expired instances of the same file leave
     // identically named volumes in the store, and a store lookup would
-    // return the first — stale — match.
-    if (!m_g4WorldLV)
-        return nullptr;
-    std::unordered_set<const G4LogicalVolume*> visited;
-    return findLogicalVolume(m_g4WorldLV, name, visited);
+    // return the first — stale — match. Empty until conversion.
+    const auto it = m_lvByName.find(name);
+    return it == m_lvByName.end() ? nullptr : it->second;
 }
 
 }  // namespace ship

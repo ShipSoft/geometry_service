@@ -144,3 +144,12 @@ TEST_CASE("RayScannerTest.ZeroDirectionThrows", "[ray_scanner]") {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     CHECK_THROWS_AS(scanner.scan({0, 0, 0}, {0, 0, nan}), std::invalid_argument);
 }
+
+TEST_CASE("GeometryServiceTest.LogicalVolumeLookupAfterConversion", "[geometry_service]") {
+    auto& svc = service();
+    CHECK(svc.getLogicalVolume("TestWorld") == svc.geant4WorldLogical());
+    auto* iron = svc.getLogicalVolume("TestIronBox");
+    REQUIRE(iron != nullptr);
+    CHECK(iron->GetMaterial()->GetName() == "TestIron");
+    CHECK(svc.getLogicalVolume("NoSuchVolume") == nullptr);
+}
