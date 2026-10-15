@@ -67,7 +67,7 @@ class SHiPGeometryService final : public IGeometryService {
     SHiPGeometryService() = default;
 
     PVConstLink m_world;  ///< intrusive ref-counted GeoModel tree
-    mutable std::once_flag m_g4ConversionDone;
+    std::once_flag m_g4ConversionDone;
     G4LogicalVolume* m_g4WorldLV{nullptr};  ///< written once via call_once
     std::exception_ptr m_conversionError;   ///< sticky conversion failure
 };
