@@ -79,9 +79,12 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
         point, &dir, /*pRelativeSearch=*/false, /*ignoreDirection=*/false);
     // Boundary count is bounded by the geometry's depth times its daughters;
     // anything near the cap indicates a navigation loop, not a real geometry.
-    constexpr int max_steps = 100000;
-    int steps = 0;
-    for (; volume && steps < max_steps; ++steps) {
+    // Checked before stepping, so a ray that exits on the last allowed step
+    // still returns normally while a truncated scan never looks like one.
+    constexpr int kMaxSteps = 100000;
+    for (int steps = 0; volume; ++steps) {
+        if (steps == kMaxSteps)
+            throw std::runtime_error("G4RayScanner::scan: step limit reached (navigation loop?)");
         double safety = 0.;
         const double step = m_navigator.ComputeStep(point, dir, kInfinity, safety);
         if (step == kInfinity)
@@ -98,9 +101,6 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
         volume = m_navigator.LocateGlobalPointAndSetup(point, &dir, /*pRelativeSearch=*/true,
                                                        /*ignoreDirection=*/false);
     }
-    // A truncated scan must not look like a clean world exit.
-    if (steps == max_steps)
-        throw std::runtime_error("G4RayScanner::scan: step limit reached (navigation loop?)");
     return result;
 }
 
