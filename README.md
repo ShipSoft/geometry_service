@@ -20,21 +20,29 @@ An [automatic class reference](https://shipsoft.github.io/geometry_service/) is 
                     │ implements
 ┌───────────────────▼─────────────────────┐
 │  SHiPGeometryService                    │
-│  ::fromSource()   — SHiPGeometryBuilder │
-│  ::fromFile(db)   — GeoModelIO::Read    │
+│  ::fromSource()       — C++ builder     │
+│  ::fromFile(db)       — GeoModelIO::Read│
+│  ::sharedFromFile(db) — one per file    │
+│  ::fromWorld(world)   — existing tree   │
 └─────────────────────────────────────────┘
+
+G4RayScanner     straight-line material scan over a converted tree
+geometry_thread  the one thread allowed to create Geant4 geometry
 ```
 
 **Design decisions:**
 
-- `IGeometryService` has no framework headers — can be used standalone or from any
-  framework.
+- `IGeometryService` has no framework headers, so it can be used standalone or
+  from any framework.
 - GeoModel tree construction is **eager** (in the factory functions) to surface
   geometry errors at startup.
 - GeoModel→Geant4 conversion (`geant4WorldLogical()`) is **lazy** (guarded by
-  `std::call_once`) because `ExtParameterisedVolumeBuilder::Build()` requires a
-  `G4RunManager` to exist on the calling thread. Call it from within
-  `G4VUserDetectorConstruction::Construct()`.
+  `std::call_once`). Users that only need the GeoModel tree never pay for it,
+  and the caller decides which thread creates the Geant4 volumes. No
+  `G4RunManager` is needed.
+- Geant4 MT allows only one geometry-creating thread per process. When more
+  than one component touches Geant4 geometry, run conversion and scanning
+  through `ship::geometry_thread()`.
 
 ## Prerequisites
 
@@ -45,7 +53,7 @@ For manual builds you'll need:
 - CMake 3.24+
 - C++20 compiler
 - `SHiPGeometry` installed (from `geometry/` repository)
-- GeoModel 6.22+ (GeoModelCore, GeoModelIO, GeoModelG4)
+- GeoModel 6.30+ (GeoModelCore, GeoModelIO, GeoModelG4)
 - Geant4 11.x
 
 ## Building
@@ -101,9 +109,28 @@ const GeoVPhysVol* world = svc->geoModelWorld();
 auto svc = ship::SHiPGeometryService::fromFile("/path/to/ship_geometry.db");
 ```
 
+### Sharing one geometry file across plugins
+
+```cpp
+// Same instance for every caller that names the same file
+auto svc = ship::SHiPGeometryService::sharedFromFile("/path/to/ship_geometry.db");
+```
+
 ### Accessing Geant4 geometry
 
-Call `geant4WorldLogical()` from within `G4VUserDetectorConstruction::Construct()`:
+The first call to `geant4WorldLogical()` converts the GeoModel tree. If
+anything else in the process creates Geant4 geometry, convert on the shared
+geometry thread:
+
+```cpp
+#include <GeometryService/GeometryThread.h>
+
+auto& gt = ship::geometry_thread();
+G4LogicalVolume* worldLV = gt.run([&] { return svc->geant4WorldLogical(); });
+```
+
+In a plain single-threaded Geant4 application, calling it from
+`G4VUserDetectorConstruction::Construct()` also works:
 
 ```cpp
 G4VPhysicalVolume* Construct() override {
@@ -118,6 +145,21 @@ G4VPhysicalVolume* Construct() override {
 ```cpp
 // Valid after geant4WorldLogical() has been called
 G4LogicalVolume* lv = svc->getLogicalVolume("MuonShield");
+```
+
+### Material scans
+
+`G4RayScanner` lists the materials a straight line crosses, with lengths in mm.
+It needs no `G4RunManager`. Only one scanner may be alive at a time, because it
+closes the Geant4 geometry, and that flag is process-wide.
+
+```cpp
+#include <GeometryService/G4RayScanner.h>
+
+ship::G4RayScanner scanner{worldLV};
+auto [entry, segments] = scanner.scan({0, 0, -50 * m}, {0, 0, 1});
+for (const auto& [material, length] : segments)
+    std::cout << material->GetName() << ' ' << length << " mm\n";
 ```
 
 ## Using from CMake

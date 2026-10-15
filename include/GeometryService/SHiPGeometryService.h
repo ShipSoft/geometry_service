@@ -40,9 +40,10 @@ class SHiPGeometryService final : public IGeometryService {
     ///
     /// All conversion and navigation on a shared instance must run on
     /// ship::geometry_thread() (see GeometryThread.h): Geant4 permits only
-    /// one geometry-creating thread per process. Converted GeoModel trees
-    /// are retained for the process lifetime (see geant4WorldLogical), so
-    /// reloading a file after a converted instance has expired is safe.
+    /// one geometry-creating thread per process. Reloading a file after a
+    /// converted instance has expired is safe: each conversion uses its own
+    /// VolumeBuilder caches, while the Geant4 volumes of the expired
+    /// conversion stay in the global stores.
     [[nodiscard]] static std::shared_ptr<SHiPGeometryService> sharedFromFile(
         const std::filesystem::path& dbPath);
 
@@ -52,7 +53,7 @@ class SHiPGeometryService final : public IGeometryService {
     ~SHiPGeometryService() override = default;
 
     // Non-copyable and non-movable (std::once_flag member; instances are
-    // only handed out via unique_ptr, so moves are not needed).
+    // only handed out via unique_ptr or shared_ptr, so moves are not needed).
     SHiPGeometryService(const SHiPGeometryService&) = delete;
     SHiPGeometryService& operator=(const SHiPGeometryService&) = delete;
     SHiPGeometryService(SHiPGeometryService&&) = delete;
