@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 
 class G4LogicalVolume;
 
@@ -70,6 +71,9 @@ class SHiPGeometryService final : public IGeometryService {
     std::once_flag m_g4ConversionDone;
     G4LogicalVolume* m_g4WorldLV{nullptr};  ///< written once via call_once
     std::exception_ptr m_conversionError;   ///< sticky conversion failure
+    /// First converted volume of each name, depth-first; filled with
+    /// m_g4WorldLV, so later renames are not seen.
+    std::unordered_map<std::string, G4LogicalVolume*> m_lvByName;
 };
 
 }  // namespace ship
