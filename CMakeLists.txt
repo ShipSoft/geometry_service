@@ -62,11 +62,18 @@ set_target_properties(
         SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
 )
 
-target_include_directories(
+# The file set supplies both the build-tree and the installed include path,
+# and installs the headers below.
+target_sources(
     SHiPGeometryService
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        FILE_SET HEADERS
+            BASE_DIRS include
+            FILES
+                include/GeometryService/G4RayScanner.h
+                include/GeometryService/GeometryThread.h
+                include/GeometryService/IGeometryService.h
+                include/GeometryService/SHiPGeometryService.h
 )
 
 # CMAKE_CXX_STANDARD above is directory-scope only and not exported;
@@ -112,9 +119,8 @@ install(
     EXPORT SHiPGeometryServiceTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    FILE_SET HEADERS
 )
-
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
     EXPORT SHiPGeometryServiceTargets
