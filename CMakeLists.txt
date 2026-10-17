@@ -11,7 +11,7 @@ project(
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -91,7 +91,7 @@ target_sources(
 # without this, the installed target carries no language requirement and
 # consumers on an older default standard get header errors instead of a
 # clear CMake diagnostic.
-target_compile_features(SHiPGeometryService PUBLIC cxx_std_20)
+target_compile_features(SHiPGeometryService PUBLIC cxx_std_23)
 
 # GeoModelKernel (PVConstLink), Geant4 (G4RayScanner.h holds a G4Navigator
 # by value) and std::thread (GeometryThread.h) appear in public headers;

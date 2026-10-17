@@ -1,6 +1,6 @@
 # SHiP Geometry Service
 
-A framework-agnostic C++20 library that wraps the SHiP GeoModel geometry behind a
+A framework-agnostic C++23 library that wraps the SHiP GeoModel geometry behind a
 stable interface. The design follows the patterns of DD4HEP's `IGeoSvc` (LHCb/key4hep)
 and ALICE O2's `GeometryManager`.
 
@@ -51,7 +51,7 @@ toolchain from `conda-forge` and the SHiP channel at `prefix.dev/ship-experiment
 For manual builds you'll need:
 
 - CMake 3.24+
-- C++20 compiler
+- C++23 compiler
 - `SHiPGeometry` installed (from `geometry/` repository)
 - GeoModel 6.30+ (GeoModelCore, GeoModelIO, GeoModelG4)
 - Geant4 11.x
