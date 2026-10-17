@@ -48,7 +48,7 @@ Thank you for your interest in contributing! As part of the SHiP Collaboration, 
 
 ## Coding Style
 
-- **C++**: We use C++20. Style is defined in `.clang-format`.
+- **C++**: We use C++23. Style is defined in `.clang-format`.
 - **CMake**: Formatting enforced by `gersemi`.
 
 ## Licensing
