@@ -187,9 +187,11 @@ the names:
 
 The old header paths, the old class name, a `namespace ship = SHiP;` alias and
 the old CMake target keep working until 0.6.0. The alias comes from the old
-header paths only. It clashes with data-model releases before 0.6.0, which
-still declare `namespace ship` themselves, so code that includes an old path
-together with such a data-model needs to move to the new paths. Define
+header paths only, and it conflicts with any other declaration of `namespace ship`
+in the same translation unit. That covers data-model releases before 0.6.0 as
+well as your own code, including forward declarations of the old types such as
+`namespace ship { class SHiPGeometryService; }`. Code that declares anything in
+`namespace ship` must include the new header paths. Define
 `SHIP_NO_DEPRECATED_NAMESPACE_ALIAS` to drop the alias early.
 
 ## Licence
