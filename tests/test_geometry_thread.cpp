@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "GeometryService/G4RayScanner.h"
-#include "GeometryService/GeometryThread.h"
-#include "GeometryService/SHiPGeometryService.h"
+#include "SHiP/GeometryService/G4RayScanner.h"
+#include "SHiP/GeometryService/GeometryService.h"
+#include "SHiP/GeometryService/GeometryThread.h"
 #include "test_world.h"
 
 #include <G4GeometryManager.hh>
@@ -36,15 +36,15 @@
 #include <utility>
 
 using Catch::Matchers::WithinAbs;
-using ship::G4RayScanner;
-using ship::SHiPGeometryService;
+using SHiP::G4RayScanner;
+using SHiP::GeometryService;
 
 // ----------------------------------------------------------------------------
 // GeometryThread
 // ----------------------------------------------------------------------------
 
 TEST_CASE("GeometryThreadTest.RunsTasksOnOneDedicatedThread", "[geometry_thread]") {
-    auto& gt = ship::geometry_thread();
+    auto& gt = SHiP::geometry_thread();
     auto first = gt.run([] { return std::this_thread::get_id(); });
     auto second = gt.run([] { return std::this_thread::get_id(); });
     CHECK(first == second);
@@ -52,7 +52,7 @@ TEST_CASE("GeometryThreadTest.RunsTasksOnOneDedicatedThread", "[geometry_thread]
 }
 
 TEST_CASE("GeometryThreadTest.NestedRunExecutesInline", "[geometry_thread]") {
-    auto& gt = ship::geometry_thread();
+    auto& gt = SHiP::geometry_thread();
     auto ids = gt.run([&gt] {
         return std::pair{std::this_thread::get_id(),
                          gt.run([] { return std::this_thread::get_id(); })};
@@ -61,14 +61,14 @@ TEST_CASE("GeometryThreadTest.NestedRunExecutesInline", "[geometry_thread]") {
 }
 
 TEST_CASE("GeometryThreadTest.ExceptionsPropagateToTheCaller", "[geometry_thread]") {
-    CHECK_THROWS_AS(ship::geometry_thread().run([]() -> int { throw std::runtime_error("boom"); }),
+    CHECK_THROWS_AS(SHiP::geometry_thread().run([]() -> int { throw std::runtime_error("boom"); }),
                     std::runtime_error);
     // The thread survives a throwing task.
-    CHECK(ship::geometry_thread().run([] { return 42; }) == 42);
+    CHECK(SHiP::geometry_thread().run([] { return 42; }) == 42);
 }
 
 TEST_CASE("GeometryThreadTest.ConcurrentCallersSerialise", "[geometry_thread]") {
-    auto& gt = ship::geometry_thread();
+    auto& gt = SHiP::geometry_thread();
     std::atomic<int> active{0};
     std::atomic<bool> overlapped{false};
     auto task = [&] {
@@ -91,7 +91,7 @@ TEST_CASE("GeometryThreadTest.ConcurrentCallersSerialise", "[geometry_thread]") 
 }
 
 // ----------------------------------------------------------------------------
-// SHiPGeometryService::sharedFromFile
+// GeometryService::sharedFromFile
 // ----------------------------------------------------------------------------
 
 namespace {
@@ -118,11 +118,11 @@ std::filesystem::path testDir() {
 TEST_CASE("SharedFromFileTest.SameCanonicalPathYieldsSameInstance", "[shared_registry]") {
     auto dir = testDir();
     writeTestDb(dir / "world.db");
-    auto first = SHiPGeometryService::sharedFromFile((dir / "world.db").string());
-    auto second = SHiPGeometryService::sharedFromFile((dir / "world.db").string());
+    auto first = GeometryService::sharedFromFile((dir / "world.db").string());
+    auto second = GeometryService::sharedFromFile((dir / "world.db").string());
     CHECK(first == second);
     // A non-canonical spelling of the same file hits the same entry.
-    auto dotted = SHiPGeometryService::sharedFromFile((dir / "." / "world.db").string());
+    auto dotted = GeometryService::sharedFromFile((dir / "." / "world.db").string());
     CHECK(dotted == first);
     std::filesystem::remove_all(dir);
 }
@@ -131,8 +131,8 @@ TEST_CASE("SharedFromFileTest.DifferentFilesYieldDistinctInstances", "[shared_re
     auto dir = testDir();
     writeTestDb(dir / "one.db");
     writeTestDb(dir / "two.db");
-    auto one = SHiPGeometryService::sharedFromFile((dir / "one.db").string());
-    auto two = SHiPGeometryService::sharedFromFile((dir / "two.db").string());
+    auto one = GeometryService::sharedFromFile((dir / "one.db").string());
+    auto two = GeometryService::sharedFromFile((dir / "two.db").string());
     CHECK(one != two);
     std::filesystem::remove_all(dir);
 }
@@ -141,11 +141,11 @@ TEST_CASE("SharedFromFileTest.ExpiredEntryIsReloaded", "[shared_registry]") {
     auto dir = testDir();
     writeTestDb(dir / "world.db");
     auto path = (dir / "world.db").string();
-    auto first = SHiPGeometryService::sharedFromFile(path);
-    std::weak_ptr<SHiPGeometryService> weak{first};
+    auto first = GeometryService::sharedFromFile(path);
+    const std::weak_ptr<GeometryService> weak{first};
     first.reset();  // last owner: the registry's weak_ptr expires
     CHECK(weak.expired());
-    auto reloaded = SHiPGeometryService::sharedFromFile(path);
+    const auto reloaded = GeometryService::sharedFromFile(path);
     // A fresh instance, not the destroyed one: compare ownership rather
     // than addresses, which the allocator may reuse.
     CHECK((weak.owner_before(reloaded) || reloaded.owner_before(weak)));
@@ -156,15 +156,15 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
     auto dir = testDir();
     writeTestDb(dir / "world.db");
     auto path = (dir / "world.db").string();
-    auto& gt = ship::geometry_thread();
+    auto& gt = SHiP::geometry_thread();
 
-    auto first = SHiPGeometryService::sharedFromFile(path);
+    auto first = GeometryService::sharedFromFile(path);
     REQUIRE(gt.run([&] { return first->geant4WorldLogical(); }) != nullptr);
     auto* firstIron = gt.run([&] { return first->getLogicalVolume("TestIronBox"); });
     REQUIRE(firstIron != nullptr);
     first.reset();  // converted instance expires; its G4 volumes stay in the stores
 
-    auto reloaded = SHiPGeometryService::sharedFromFile(path);
+    auto reloaded = GeometryService::sharedFromFile(path);
     CHECK(gt.run([&] { return reloaded->geant4WorldLogical(); }) != nullptr);
     // Name lookup is scoped to the service's own tree: the retained first
     // conversion left identically named volumes in the global store, and a
@@ -185,8 +185,7 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
 }
 
 TEST_CASE("SharedFromFileTest.MissingFileThrows", "[shared_registry]") {
-    CHECK_THROWS_AS(SHiPGeometryService::sharedFromFile("/nonexistent/path.db"),
-                    std::runtime_error);
+    CHECK_THROWS_AS(GeometryService::sharedFromFile("/nonexistent/path.db"), std::runtime_error);
 }
 
 // ----------------------------------------------------------------------------
@@ -195,16 +194,16 @@ TEST_CASE("SharedFromFileTest.MissingFileThrows", "[shared_registry]") {
 
 // A GENIE-style user (convert + ray-scan) and a run-manager-style user
 // (world placement, region, full geometry close) share the geometry through
-// ship::geometry_thread(); a worker-style thread replicates the split-class
+// SHiP::geometry_thread(); a worker-style thread replicates the split-class
 // arrays and reads. Before the shared thread existed, the second user's
 // touch of the converted volumes segfaulted (Geant4 bug #2747). The stores
 // are cleaned at the end so later tests (and static teardown) see none of
 // the volumes created here.
 TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_thread]") {
-    auto& gt = ship::geometry_thread();
+    auto& gt = SHiP::geometry_thread();
 
     // GENIE-style user: convert and scan on the geometry thread.
-    auto svc = SHiPGeometryService::fromWorld(buildTestWorld());
+    auto svc = GeometryService::fromWorld(buildTestWorld());
     auto* worldLV = gt.run([&] { return svc->geant4WorldLogical(); });
     REQUIRE(worldLV != nullptr);
     auto scanner = gt.run([&] { return std::make_unique<G4RayScanner>(worldLV); });

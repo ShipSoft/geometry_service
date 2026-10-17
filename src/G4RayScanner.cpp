@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "GeometryService/G4RayScanner.h"
+#include "SHiP/GeometryService/G4RayScanner.h"
 
 #include <G4GeometryManager.hh>
 #include <G4LogicalVolume.hh>
@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace ship {
+namespace SHiP {
 
 G4RayScanner::G4RayScanner(G4LogicalVolume* top) {
     if (!top)
@@ -116,4 +116,4 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     return result;
 }
 
-}  // namespace ship
+}  // namespace SHiP

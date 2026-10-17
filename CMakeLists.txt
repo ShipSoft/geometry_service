@@ -25,7 +25,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 # ----------------------------------------------------------------------------
 
 find_package(SHiPGeometry CONFIG REQUIRED)
-# 6.30 introduced the VolumeBuilder API used in SHiPGeometryService.cpp.
+# 6.30 introduced the VolumeBuilder API used in GeometryService.cpp.
 # GeoModelG4 installs no version file, so the floor sits on its siblings,
 # which GeoModel releases in lockstep with it.
 find_package(GeoModelCore 6.30 CONFIG REQUIRED)
@@ -48,10 +48,16 @@ unset(_d)
 
 add_library(
     SHiPGeometryService
-    src/SHiPGeometryService.cpp
+    src/GeometryService.cpp
     src/G4RayScanner.cpp
     src/GeometryThread.cpp
 )
+
+set_target_properties(
+    SHiPGeometryService
+    PROPERTIES EXPORT_NAME GeometryService
+)
+add_library(SHiP::GeometryService ALIAS SHiPGeometryService)
 
 # Pre-1.0, a minor release may break the ABI, so the soname carries both
 # major and minor.
@@ -70,6 +76,11 @@ target_sources(
         FILE_SET HEADERS
             BASE_DIRS include
             FILES
+                include/SHiP/GeometryService/G4RayScanner.h
+                include/SHiP/GeometryService/GeometryService.h
+                include/SHiP/GeometryService/GeometryThread.h
+                include/SHiP/GeometryService/IGeometryService.h
+                # Forwarders for the pre-0.5.0 paths, removed in 0.6.0.
                 include/GeometryService/G4RayScanner.h
                 include/GeometryService/GeometryThread.h
                 include/GeometryService/IGeometryService.h
@@ -125,7 +136,7 @@ install(
 install(
     EXPORT SHiPGeometryServiceTargets
     FILE SHiPGeometryServiceTargets.cmake
-    NAMESPACE SHiPGeometryService::
+    NAMESPACE SHiP::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SHiPGeometryService
 )
 

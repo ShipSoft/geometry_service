@@ -19,7 +19,7 @@ An [automatic class reference](https://shipsoft.github.io/geometry_service/) is 
 └───────────────────┬─────────────────────┘
                     │ implements
 ┌───────────────────▼─────────────────────┐
-│  SHiPGeometryService                    │
+│  GeometryService                        │
 │  ::fromSource()       — C++ builder     │
 │  ::fromFile(db)       — GeoModelIO::Read│
 │  ::sharedFromFile(db) — one per file    │
@@ -42,7 +42,7 @@ geometry_thread  the one thread allowed to create Geant4 geometry
   `G4RunManager` is needed.
 - Geant4 MT allows only one geometry-creating thread per process. When more
   than one component touches Geant4 geometry, run conversion and scanning
-  through `ship::geometry_thread()`.
+  through `SHiP::geometry_thread()`.
 
 ## Prerequisites
 
@@ -97,23 +97,23 @@ cmake --install build --prefix /path/to/install
 ### Building geometry from source
 
 ```cpp
-#include <GeometryService/SHiPGeometryService.h>
+#include <SHiP/GeometryService/GeometryService.h>
 
-auto svc = ship::SHiPGeometryService::fromSource();
+auto svc = SHiP::GeometryService::fromSource();
 const GeoVPhysVol* world = svc->geoModelWorld();
 ```
 
 ### Loading geometry from a `.db` file
 
 ```cpp
-auto svc = ship::SHiPGeometryService::fromFile("/path/to/ship_geometry.db");
+auto svc = SHiP::GeometryService::fromFile("/path/to/ship_geometry.db");
 ```
 
 ### Sharing one geometry file across plugins
 
 ```cpp
 // Same instance for every caller that names the same file
-auto svc = ship::SHiPGeometryService::sharedFromFile("/path/to/ship_geometry.db");
+auto svc = SHiP::GeometryService::sharedFromFile("/path/to/ship_geometry.db");
 ```
 
 ### Accessing Geant4 geometry
@@ -123,9 +123,9 @@ anything else in the process creates Geant4 geometry, convert on the shared
 geometry thread:
 
 ```cpp
-#include <GeometryService/GeometryThread.h>
+#include <SHiP/GeometryService/GeometryThread.h>
 
-auto& gt = ship::geometry_thread();
+auto& gt = SHiP::geometry_thread();
 G4LogicalVolume* worldLV = gt.run([&] { return svc->geant4WorldLogical(); });
 ```
 
@@ -154,9 +154,9 @@ It needs no `G4RunManager`. Only one scanner may be alive at a time, because it
 closes the Geant4 geometry, and that flag is process-wide.
 
 ```cpp
-#include <GeometryService/G4RayScanner.h>
+#include <SHiP/GeometryService/G4RayScanner.h>
 
-ship::G4RayScanner scanner{worldLV};
+SHiP::G4RayScanner scanner{worldLV};
 auto [entry, segments] = scanner.scan({0, 0, -50 * m}, {0, 0, 1});
 for (const auto& [material, length] : segments)
     std::cout << material->GetName() << ' ' << length << " mm\n";
@@ -166,11 +166,31 @@ for (const auto& [material, length] : segments)
 
 ```cmake
 find_package(SHiPGeometryService CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE SHiPGeometryService::SHiPGeometryService)
+target_link_libraries(myapp PRIVATE SHiP::GeometryService)
 ```
 
 The package config pulls in `SHiPGeometry`, `GeoModelCore`, `GeoModelIO`,
 `GeoModelG4`, and `Geant4` automatically.
+
+### Upgrading from 0.4
+
+0.5.0 moved everything from `ship` into `SHiP` and dropped the stutter from
+the names:
+
+| Before | After |
+|---|---|
+| `#include <GeometryService/SHiPGeometryService.h>` | `#include <SHiP/GeometryService/GeometryService.h>` |
+| `#include <GeometryService/X.h>` | `#include <SHiP/GeometryService/X.h>` |
+| `ship::SHiPGeometryService` | `SHiP::GeometryService` |
+| `ship::X` | `SHiP::X` |
+| `SHiPGeometryService::SHiPGeometryService` | `SHiP::GeometryService` |
+
+The old header paths, the old class name, a `namespace ship = SHiP;` alias and
+the old CMake target keep working until 0.6.0. The alias comes from the old
+header paths only. It clashes with data-model releases before 0.6.0, which
+still declare `namespace ship` themselves, so code that includes an old path
+together with such a data-model needs to move to the new paths. Define
+`SHIP_NO_DEPRECATED_NAMESPACE_ALIAS` to drop the alias early.
 
 ## Licence
 
