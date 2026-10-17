@@ -88,6 +88,18 @@ TEST_CASE("RayScannerTest.UnnormalisedDirectionIsAccepted", "[ray_scanner]") {
     CHECK_THAT(segments[1].length, WithinAbs(200., 1e-6));
 }
 
+TEST_CASE("RayScannerTest.ExtremeDirectionMagnitudesAreAccepted", "[ray_scanner]") {
+    // mag2() of these directions overflows or underflows; the scan must
+    // still follow them.
+    auto scanner = makeWorldScanner();
+    for (const double z : {1e-200, 1e200}) {
+        auto [entry, segments] = scanner.scan({0, 0, 0}, {0, 0, z});
+        CHECK(entry == 0.);
+        REQUIRE(segments.size() == 3U);
+        CHECK_THAT(segments[1].length, WithinAbs(200., 1e-6));
+    }
+}
+
 TEST_CASE("RayScannerTest.MissingRayReturnsEmpty", "[ray_scanner]") {
     auto scanner = makeWorldScanner();
     CHECK(scanner.scan({0, 5000, -1500}, {0, 0, 1}).segments.empty());
