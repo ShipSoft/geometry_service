@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "GeometryService/GeometryThread.h"
+#include "SHiP/GeometryService/GeometryThread.h"
 
 #include <utility>
 
-namespace ship {
+namespace SHiP {
 
 GeometryThread::GeometryThread()
     : m_thread{[this](std::stop_token stopToken) { loop(std::move(stopToken)); }} {}
@@ -39,4 +39,4 @@ GeometryThread& geometry_thread() {
     return *thread;
 }
 
-}  // namespace ship
+}  // namespace SHiP

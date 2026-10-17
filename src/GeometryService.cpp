@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "GeometryService/SHiPGeometryService.h"
+#include "SHiP/GeometryService/GeometryService.h"
 
 #include <G4LogicalVolume.hh>
 #include <G4VPhysicalVolume.hh>
@@ -23,18 +23,18 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace ship {
+namespace SHiP {
 
 // ----------------------------------------------------------------------------
 // Factory: build from C++ source
 // ----------------------------------------------------------------------------
 
-std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromSource() {
-    auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
+std::unique_ptr<GeometryService> GeometryService::fromSource() {
+    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     SHiPGeometry::SHiPGeometryBuilder builder;
     svc->m_world = builder.build();
     if (!svc->m_world)
-        throw std::runtime_error("SHiPGeometryService::fromSource: geometry build returned null");
+        throw std::runtime_error("GeometryService::fromSource: geometry build returned null");
     return svc;
 }
 
@@ -42,23 +42,22 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromSource() {
 // Factory: load from GeoModel .db file
 // ----------------------------------------------------------------------------
 
-std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(
-    const std::filesystem::path& dbPath) {
+std::unique_ptr<GeometryService> GeometryService::fromFile(const std::filesystem::path& dbPath) {
     // GMDBManager opens via sqlite3_open, which silently creates a missing
     // file; validate up front to fail with a clear message instead.
     if (!std::filesystem::is_regular_file(dbPath))
-        throw std::runtime_error("SHiPGeometryService::fromFile: no such file: " + dbPath.string());
-    auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
+        throw std::runtime_error("GeometryService::fromFile: no such file: " + dbPath.string());
+    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     auto db = std::make_shared<GMDBManager>(dbPath.string());
     // An existing but corrupt or non-GeoModel file leaves the manager
     // unopened; ReadGeoModel would fail deep inside library code otherwise.
     if (!db->checkIsDBOpen())
-        throw std::runtime_error("SHiPGeometryService::fromFile: not a GeoModel database: " +
+        throw std::runtime_error("GeometryService::fromFile: not a GeoModel database: " +
                                  dbPath.string());
     GeoModelIO::ReadGeoModel reader(db);
     svc->m_world = reader.buildGeoModel();
     if (!svc->m_world)
-        throw std::runtime_error("SHiPGeometryService::fromFile: buildGeoModel returned null");
+        throw std::runtime_error("GeometryService::fromFile: buildGeoModel returned null");
     return svc;
 }
 
@@ -66,15 +65,15 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromFile(
 // Factory: process-wide shared instance per geometry file
 // ----------------------------------------------------------------------------
 
-std::shared_ptr<SHiPGeometryService> SHiPGeometryService::sharedFromFile(
+std::shared_ptr<GeometryService> GeometryService::sharedFromFile(
     const std::filesystem::path& dbPath) {
     static std::mutex registryMutex;
-    static std::map<std::string, std::weak_ptr<SHiPGeometryService>> registry;
+    static std::map<std::string, std::weak_ptr<GeometryService>> registry;
 
     // Canonicalisation needs an existing file; fromFile would also reject a
     // missing one, but only after the registry lookup keyed a bogus path.
     if (!std::filesystem::is_regular_file(dbPath))
-        throw std::runtime_error("SHiPGeometryService::sharedFromFile: no such file: " +
+        throw std::runtime_error("GeometryService::sharedFromFile: no such file: " +
                                  dbPath.string());
     const auto key = std::filesystem::canonical(dbPath).string();
 
@@ -85,7 +84,7 @@ std::shared_ptr<SHiPGeometryService> SHiPGeometryService::sharedFromFile(
     auto& slot = registry[key];
     if (auto existing = slot.lock())
         return existing;
-    std::shared_ptr<SHiPGeometryService> svc = fromFile(key);
+    std::shared_ptr<GeometryService> svc = fromFile(key);
     slot = svc;
     return svc;
 }
@@ -94,10 +93,10 @@ std::shared_ptr<SHiPGeometryService> SHiPGeometryService::sharedFromFile(
 // Factory: wrap an existing GeoModel tree
 // ----------------------------------------------------------------------------
 
-std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromWorld(PVConstLink world) {
+std::unique_ptr<GeometryService> GeometryService::fromWorld(PVConstLink world) {
     if (!world)
-        throw std::runtime_error("SHiPGeometryService::fromWorld: world is null");
-    auto svc = std::unique_ptr<SHiPGeometryService>(new SHiPGeometryService());
+        throw std::runtime_error("GeometryService::fromWorld: world is null");
+    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     svc->m_world = std::move(world);
     return svc;
 }
@@ -106,7 +105,7 @@ std::unique_ptr<SHiPGeometryService> SHiPGeometryService::fromWorld(PVConstLink 
 // IGeometryService implementation
 // ----------------------------------------------------------------------------
 
-const GeoVPhysVol* SHiPGeometryService::geoModelWorld() const {
+const GeoVPhysVol* GeometryService::geoModelWorld() const {
     return m_world.get();
 }
 
@@ -128,7 +127,7 @@ void indexLogicalVolumes(G4LogicalVolume* lv,
 
 }  // namespace
 
-G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
+G4LogicalVolume* GeometryService::geant4WorldLogical() {
     std::call_once(m_g4ConversionDone, [this]() {
         // A failed conversion is sticky: it can leave partially registered
         // volumes in the Geant4 stores, so a retry could silently produce a
@@ -138,7 +137,7 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
             VolumeBuilder builder{"SHiP"};
             m_g4WorldLV = builder.Build(m_world);
             if (!m_g4WorldLV)
-                throw std::runtime_error("SHiPGeometryService: GeoModel→Geant4 conversion failed");
+                throw std::runtime_error("GeometryService: GeoModel→Geant4 conversion failed");
             std::unordered_set<const G4LogicalVolume*> visited;
             indexLogicalVolumes(m_g4WorldLV, m_lvByName, visited);
         } catch (...) {
@@ -150,7 +149,7 @@ G4LogicalVolume* SHiPGeometryService::geant4WorldLogical() {
     return m_g4WorldLV;
 }
 
-G4LogicalVolume* SHiPGeometryService::getLogicalVolume(const std::string& name) const {
+G4LogicalVolume* GeometryService::getLogicalVolume(const std::string& name) const {
     // A failed conversion must not look like "not converted yet".
     if (m_conversionError)
         std::rethrow_exception(m_conversionError);
@@ -162,4 +161,4 @@ G4LogicalVolume* SHiPGeometryService::getLogicalVolume(const std::string& name) 
     return it == m_lvByName.end() ? nullptr : it->second;
 }
 
-}  // namespace ship
+}  // namespace SHiP

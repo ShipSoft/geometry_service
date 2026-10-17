@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "GeometryService/G4RayScanner.h"
-#include "GeometryService/SHiPGeometryService.h"
+#include "SHiP/GeometryService/G4RayScanner.h"
+#include "SHiP/GeometryService/GeometryService.h"
 #include "test_world.h"
 
 #include <G4LogicalVolume.hh>
@@ -17,18 +17,18 @@
 #include <stdexcept>
 
 using Catch::Matchers::WithinAbs;
-using ship::G4RayScanner;
-using ship::SHiPGeometryService;
+using SHiP::G4RayScanner;
+using SHiP::GeometryService;
 
 namespace {
 
 // One service and G4 conversion shared by all tests: converted volumes live
 // in the global Geant4 stores, so repeated conversions would pile up copies.
 // (Conversion runs on the main thread — fine here because this binary is the
-// only Geant4 geometry user; multi-user code must use ship::geometry_thread().)
-SHiPGeometryService& service() {
-    static std::unique_ptr<SHiPGeometryService> svc = [] {
-        auto s = SHiPGeometryService::fromWorld(buildTestWorld());
+// only Geant4 geometry user; multi-user code must use SHiP::geometry_thread().)
+GeometryService& service() {
+    static std::unique_ptr<GeometryService> svc = [] {
+        auto s = GeometryService::fromWorld(buildTestWorld());
         s->geant4WorldLogical();
         return s;
     }();

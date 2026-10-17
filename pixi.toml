@@ -55,7 +55,7 @@ ninja = "*"
 git = "*"
 shipgeometry = "*"
 # >=6.30: GeoModel!612 replaced ExtParameterisedVolumeBuilder with a concrete
-# VolumeBuilder whose conversion caches are per-instance. SHiPGeometryService
+# VolumeBuilder whose conversion caches are per-instance. GeometryService
 # builds against that API only.
 geomodel = ">=6.30"
 # Geant4 arrives here through geomodel, and its CMake config needs the same

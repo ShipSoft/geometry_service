@@ -9,12 +9,16 @@ include(Catch)
 foreach(
     test
     IN
-    ITEMS test_geometry_service test_ray_scanner test_geometry_thread
+    ITEMS
+        test_geometry_service
+        test_ray_scanner
+        test_geometry_thread
+        test_compat
 )
     add_executable(${test} ${test}.cpp)
     target_link_libraries(
         ${test}
-        PRIVATE SHiPGeometryService Catch2::Catch2WithMain
+        PRIVATE SHiP::GeometryService Catch2::Catch2WithMain
     )
     catch_discover_tests(${test})
 endforeach()
