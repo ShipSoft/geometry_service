@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-10-17
+
+### Bug fixes
+
+- *(release)* Roll back on any failure, fail on unbumpable versions
+- *(pixi)* Add expat, zlib and freetype for Geant4's CMake config
+- Let a failed git diff fail the clang-tidy-diff task
+- *(release)* Tag the release only after it lands on main
+- *(scanner)* Reject zero or non-finite ray directions
+- *(scanner)* Don't report a clean exit as a step-limit overrun
+- *(scanner)* Don't leak the placement if construction fails
+- Accept directions whose squared norm over- or underflows
+
+### Refactor
+
+- Install headers through a file set and drop a needless mutable
+- [**breaking**] Move the geometry service into the SHiP namespace
+
+### Documentation
+
+- Adopt AI policy
+- Describe what the clang-tidy gate actually does, and fix the local check
+- Drop stale tree-retention claims and refresh the README
+- Say the ship alias clashes with any namespace ship declaration
+
+### Performance
+
+- Index converted logical volumes by name
+
+### Miscellaneous
+
+- Sync shared configs
+- Update pixi lock file
+- Remove redundant PR checklist template
+- Grant config-sync job explicit permissions
+- Update pixi lock file
+- Gate merges on uniform aggregator checks
+- Check C++ against the Core Guidelines with clang-tidy
+- Sync shared configs
+- Require GeoModel 6.30 and drop the dual-API builder shim
+- Add advisory builds against ShipSoft library mains
+
+### Build
+
+- Pass CMAKE_PREFIX_PATH to the configure task
+- Get Catch2 from conda-forge instead of FetchContent
+- Require GeoModel 6.30 in find_package and set SOVERSION
+- Resolve SHiP packages from ship-experiment/stable
+
 ## [0.4.0] - 2026-08-10
 
 ### Features
