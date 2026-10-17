@@ -39,7 +39,7 @@ An [automatic class reference](https://shipsoft.github.io/geometry_service/) is 
 ## Prerequisites
 
 The easiest setup is [pixi](https://pixi.sh), which provisions the full
-toolchain from `conda-forge` and the SHiP channel at `prefix.dev/ship`.
+toolchain from `conda-forge` and the SHiP channel at `prefix.dev/ship-experiment/stable`.
 For manual builds you'll need:
 
 - CMake 3.24+
