@@ -12,7 +12,6 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
 #include <SHiPGeometry/SHiPGeometry.h>
-#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <map>
@@ -121,8 +120,9 @@ void indexLogicalVolumes(G4LogicalVolume* lv,
     if (!visited.insert(lv).second)
         return;
     index.emplace(lv->GetName(), lv);
-    for (std::size_t i = 0; i < lv->GetNoDaughters(); ++i)
+    for (auto i = 0uz; i < lv->GetNoDaughters(); ++i) {
         indexLogicalVolumes(lv->GetDaughter(i)->GetLogicalVolume(), index, visited);
+    }
 }
 
 }  // namespace

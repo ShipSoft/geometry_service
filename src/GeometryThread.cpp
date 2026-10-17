@@ -11,7 +11,7 @@ namespace SHiP {
 GeometryThread::GeometryThread()
     : m_thread{[this](std::stop_token stopToken) { loop(std::move(stopToken)); }} {}
 
-void GeometryThread::post(std::function<void()> task) {
+void GeometryThread::post(std::move_only_function<void()> task) {
     {
         std::lock_guard lk{m_mutex};
         m_tasks.push_back(std::move(task));

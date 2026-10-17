@@ -47,8 +47,9 @@ G4RayScanner::~G4RayScanner() {
     // If another Geant4 user (e.g. a run manager shutdown) already cleaned
     // the stores, the placement is gone and must not be touched.
     auto* store = G4PhysicalVolumeStore::GetInstance();
-    if (std::find(store->begin(), store->end(), m_world) == store->end())
+    if (!std::ranges::contains(*store, m_world)) {
         return;
+    }
     // Deopt only while the geometry is closed (OpenGeometry is a no-op
     // otherwise). Caveat: the closed flag is global, so if a run manager
     // re-closed the full geometry meanwhile, this also flips its state open.
