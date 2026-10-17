@@ -48,9 +48,7 @@ class GeometryThread {
         using R = std::invoke_result_t<F&>;
         std::packaged_task<R()> task{std::forward<F>(f)};
         auto result = task.get_future();
-        // The reference capture is safe: result.get() below keeps this frame
-        // alive until the task has run.
-        post([&task] { task(); });
+        post(std::move(task));
         return result.get();
     }
 
@@ -60,12 +58,12 @@ class GeometryThread {
     GeometryThread();
     friend GeometryThread& geometry_thread();
 
-    void post(std::function<void()> task);
+    void post(std::move_only_function<void()> task);
     void loop(std::stop_token stopToken);
 
     std::mutex m_mutex;
     std::condition_variable_any m_cv;
-    std::deque<std::function<void()>> m_tasks;
+    std::deque<std::move_only_function<void()>> m_tasks;
     std::jthread m_thread;  ///< last: starts using the members above
 };
 
