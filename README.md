@@ -144,7 +144,7 @@ G4VPhysicalVolume* Construct() override {
 
 ```cpp
 // Valid after geant4WorldLogical() has been called
-G4LogicalVolume* lv = svc->getLogicalVolume("MuonShield");
+G4LogicalVolume* lv = svc->getLogicalVolume("MuonShield");  // nullptr if absent
 ```
 
 ### Material scans

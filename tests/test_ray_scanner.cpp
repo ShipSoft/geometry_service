@@ -15,6 +15,7 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <string_view>
 
 using Catch::Matchers::WithinAbs;
 using SHiP::G4RayScanner;
@@ -164,4 +165,7 @@ TEST_CASE("GeometryServiceTest.LogicalVolumeLookupAfterConversion", "[geometry_s
     REQUIRE(iron != nullptr);
     CHECK(iron->GetMaterial()->GetName() == "TestIron");
     CHECK(svc.getLogicalVolume("NoSuchVolume") == nullptr);
+    // The view is not null-terminated: only its first 11 characters count.
+    const std::string_view prefix = std::string_view{"TestIronBoxExtra"}.substr(0, 11);
+    CHECK(svc.getLogicalVolume(prefix) == iron);
 }

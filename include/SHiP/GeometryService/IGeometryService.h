@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <string>
+#include <string_view>
 
 class GeoVPhysVol;  // NOLINT(cppcoreguidelines-virtual-class-destructor): GeoModel's class
 class G4LogicalVolume;
@@ -32,7 +32,7 @@ class IGeometryService {
     /// tree (depth-first). Returns nullptr before geant4WorldLogical() has
     /// been called or when no such volume exists; rethrows a stored
     /// conversion failure instead of masking it as nullptr.
-    [[nodiscard]] virtual G4LogicalVolume* getLogicalVolume(const std::string& name) const = 0;
+    [[nodiscard]] virtual G4LogicalVolume* getLogicalVolume(std::string_view name) const = 0;
 };
 
 }  // namespace SHiP
