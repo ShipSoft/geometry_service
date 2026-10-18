@@ -127,7 +127,7 @@ void indexLogicalVolumes(G4LogicalVolume* lv,
 
 }  // namespace
 
-G4LogicalVolume* GeometryService::geant4WorldLogical() {
+G4LogicalVolume& GeometryService::geant4WorldLogical() {
     std::call_once(m_g4ConversionDone, [this]() {
         // A failed conversion is sticky: it can leave partially registered
         // volumes in the Geant4 stores, so a retry could silently produce a
@@ -146,7 +146,7 @@ G4LogicalVolume* GeometryService::geant4WorldLogical() {
     });
     if (m_conversionError)
         std::rethrow_exception(m_conversionError);
-    return m_g4WorldLV;
+    return *m_g4WorldLV;
 }
 
 G4LogicalVolume* GeometryService::getLogicalVolume(const std::string& name) const {

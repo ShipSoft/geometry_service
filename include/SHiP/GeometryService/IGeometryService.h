@@ -11,7 +11,7 @@ class G4LogicalVolume;
 namespace SHiP {
 
 /// Framework-agnostic interface to the SHiP detector geometry.
-/// Ownership of all returned pointers stays with the service.
+/// Ownership of all returned volumes stays with the service.
 class IGeometryService {
    public:
     virtual ~IGeometryService() = default;
@@ -19,11 +19,14 @@ class IGeometryService {
     /// GeoModel world physical volume (const — tree is immutable after build).
     [[nodiscard]] virtual const GeoVPhysVol* geoModelWorld() const = 0;
 
-    /// G4LogicalVolume* for the world. Triggers GeoModel2G4 on first call,
+    /// The Geant4 world logical volume. Triggers GeoModel2G4 on first call,
     /// which must run on the process-wide geometry thread
     /// (SHiP::geometry_thread(), see GeometryThread.h) whenever more than
-    /// one thread touches Geant4 geometry.
-    [[nodiscard]] virtual G4LogicalVolume* geant4WorldLogical() = 0;
+    /// one thread touches Geant4 geometry. Throws if the conversion fails,
+    /// on this and every later call, so it never yields a null volume.
+    /// When returning it from GeometryThread::run, give the lambda a
+    /// reference return type (`[&]() -> auto& { ... }`).
+    [[nodiscard]] virtual G4LogicalVolume& geant4WorldLogical() = 0;
 
     /// Look up a G4LogicalVolume by name within this service's converted
     /// tree (depth-first). Returns nullptr before geant4WorldLogical() has
