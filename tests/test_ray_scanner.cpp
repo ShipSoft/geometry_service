@@ -38,7 +38,7 @@ GeometryService& service() {
 // Scanners are per-test: G4GeometryManager's closed flag is process-global,
 // so only one scanner may be alive at a time (see G4RayScanner.h).
 G4RayScanner makeWorldScanner() {
-    return G4RayScanner{service().geant4WorldLogical()};
+    return G4RayScanner{&service().geant4WorldLogical()};
 }
 
 }  // namespace
@@ -159,7 +159,7 @@ TEST_CASE("RayScannerTest.ZeroDirectionThrows", "[ray_scanner]") {
 
 TEST_CASE("GeometryServiceTest.LogicalVolumeLookupAfterConversion", "[geometry_service]") {
     auto& svc = service();
-    CHECK(svc.getLogicalVolume("TestWorld") == svc.geant4WorldLogical());
+    CHECK(svc.getLogicalVolume("TestWorld") == &svc.geant4WorldLogical());
     auto* iron = svc.getLogicalVolume("TestIronBox");
     REQUIRE(iron != nullptr);
     CHECK(iron->GetMaterial()->GetName() == "TestIron");

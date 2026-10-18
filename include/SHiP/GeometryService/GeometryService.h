@@ -61,7 +61,7 @@ class GeometryService final : public IGeometryService {
     GeometryService& operator=(GeometryService&&) = delete;
 
     const GeoVPhysVol* geoModelWorld() const override;
-    G4LogicalVolume* geant4WorldLogical() override;
+    G4LogicalVolume& geant4WorldLogical() override;
     G4LogicalVolume* getLogicalVolume(const std::string& name) const override;
 
    private:

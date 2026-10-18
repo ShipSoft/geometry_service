@@ -14,7 +14,7 @@ An [automatic class reference](https://shipsoft.github.io/geometry_service/) is 
 ┌─────────────────────────────────────────┐
 │  IGeometryService  (abstract interface) │
 │  • geoModelWorld()  → GeoVPhysVol*      │
-│  • geant4WorldLogical() → G4LogicalVol* │  ← lazy, call_once
+│  • geant4WorldLogical() → G4LogicalVol& │  ← lazy, call_once
 │  • getLogicalVolume(name)               │
 └───────────────────┬─────────────────────┘
                     │ implements
@@ -126,7 +126,7 @@ geometry thread:
 #include <SHiP/GeometryService/GeometryThread.h>
 
 auto& gt = SHiP::geometry_thread();
-G4LogicalVolume* worldLV = gt.run([&] { return svc->geant4WorldLogical(); });
+G4LogicalVolume& worldLV = gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
 ```
 
 In a plain single-threaded Geant4 application, calling it from
@@ -134,8 +134,8 @@ In a plain single-threaded Geant4 application, calling it from
 
 ```cpp
 G4VPhysicalVolume* Construct() override {
-    G4LogicalVolume* worldLV = geoSvc_.geant4WorldLogical();
-    return new G4PVPlacement(nullptr, G4ThreeVector(), worldLV,
+    G4LogicalVolume& worldLV = geoSvc_.geant4WorldLogical();
+    return new G4PVPlacement(nullptr, G4ThreeVector(), &worldLV,
                              "World", nullptr, false, 0);
 }
 ```
@@ -156,7 +156,7 @@ closes the Geant4 geometry, and that flag is process-wide.
 ```cpp
 #include <SHiP/GeometryService/G4RayScanner.h>
 
-SHiP::G4RayScanner scanner{worldLV};
+SHiP::G4RayScanner scanner{&worldLV};
 auto [entry, segments] = scanner.scan({0, 0, -50 * m}, {0, 0, 1});
 for (const auto& [material, length] : segments)
     std::cout << material->GetName() << ' ' << length << " mm\n";

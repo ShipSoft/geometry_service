@@ -159,13 +159,13 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
     auto& gt = SHiP::geometry_thread();
 
     auto first = GeometryService::sharedFromFile(path);
-    REQUIRE(gt.run([&] { return first->geant4WorldLogical(); }) != nullptr);
+    gt.run([&] { first->geant4WorldLogical(); });
     auto* firstIron = gt.run([&] { return first->getLogicalVolume("TestIronBox"); });
     REQUIRE(firstIron != nullptr);
     first.reset();  // converted instance expires; its G4 volumes stay in the stores
 
     auto reloaded = GeometryService::sharedFromFile(path);
-    CHECK(gt.run([&] { return reloaded->geant4WorldLogical(); }) != nullptr);
+    gt.run([&] { reloaded->geant4WorldLogical(); });
     // Name lookup is scoped to the service's own tree: the retained first
     // conversion left identically named volumes in the global store, and a
     // store-wide search would return the stale first match.
@@ -204,8 +204,8 @@ TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_t
 
     // GENIE-style user: convert and scan on the geometry thread.
     auto svc = GeometryService::fromWorld(buildTestWorld());
-    auto* worldLV = gt.run([&] { return svc->geant4WorldLogical(); });
-    REQUIRE(worldLV != nullptr);
+    // The reference return type makes run() hand back the volume itself.
+    auto* worldLV = &gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
     auto scanner = gt.run([&] { return std::make_unique<G4RayScanner>(worldLV); });
     auto checkScan = [&] {
         auto [entry, segments] = gt.run([&] { return scanner->scan({0, 0, -1500}, {0, 0, 1}); });
