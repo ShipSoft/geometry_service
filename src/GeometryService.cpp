@@ -20,6 +20,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -115,8 +116,9 @@ namespace {
 // the visited set keeps the walk linear in distinct volumes instead of
 // re-walking shared subtrees once per placement. Pre-order with emplace
 // keeps the first volume of each name, as a depth-first search would.
-void indexLogicalVolumes(G4LogicalVolume* lv,
-                         std::unordered_map<std::string, G4LogicalVolume*>& index,
+// Index is GeometryService::m_lvByName, whose type names a private hash.
+template <typename Index>
+void indexLogicalVolumes(G4LogicalVolume* lv, Index& index,
                          std::unordered_set<const G4LogicalVolume*>& visited) {
     if (!visited.insert(lv).second)
         return;
@@ -149,7 +151,7 @@ G4LogicalVolume& GeometryService::geant4WorldLogical() {
     return *m_g4WorldLV;
 }
 
-G4LogicalVolume* GeometryService::getLogicalVolume(const std::string& name) const {
+G4LogicalVolume* GeometryService::getLogicalVolume(std::string_view name) const {
     // A failed conversion must not look like "not converted yet".
     if (m_conversionError)
         std::rethrow_exception(m_conversionError);

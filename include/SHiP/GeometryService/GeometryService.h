@@ -6,11 +6,14 @@
 #include "SHiP/GeometryService/IGeometryService.h"
 
 #include <GeoModelKernel/GeoVPhysVol.h>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 class G4LogicalVolume;
@@ -62,10 +65,19 @@ class GeometryService final : public IGeometryService {
 
     const GeoVPhysVol* geoModelWorld() const override;
     G4LogicalVolume& geant4WorldLogical() override;
-    G4LogicalVolume* getLogicalVolume(const std::string& name) const override;
+    G4LogicalVolume* getLogicalVolume(std::string_view name) const override;
 
    private:
     GeometryService() = default;
+
+    /// Transparent, so getLogicalVolume() looks a string_view up without
+    /// building a std::string.
+    struct NameHash {
+        using is_transparent = void;
+        std::size_t operator()(std::string_view name) const noexcept {
+            return std::hash<std::string_view>{}(name);
+        }
+    };
 
     PVConstLink m_world;  ///< intrusive ref-counted GeoModel tree
     std::once_flag m_g4ConversionDone;
@@ -73,7 +85,7 @@ class GeometryService final : public IGeometryService {
     std::exception_ptr m_conversionError;   ///< sticky conversion failure
     /// First converted volume of each name, depth-first; filled with
     /// m_g4WorldLV, so later renames are not seen.
-    std::unordered_map<std::string, G4LogicalVolume*> m_lvByName;
+    std::unordered_map<std::string, G4LogicalVolume*, NameHash, std::equal_to<>> m_lvByName;
 };
 
 }  // namespace SHiP
