@@ -80,11 +80,6 @@ target_sources(
                 include/SHiP/GeometryService/GeometryService.h
                 include/SHiP/GeometryService/GeometryThread.h
                 include/SHiP/GeometryService/IGeometryService.h
-                # Forwarders for the pre-0.5.0 paths, removed in 0.6.0.
-                include/GeometryService/G4RayScanner.h
-                include/GeometryService/GeometryThread.h
-                include/GeometryService/IGeometryService.h
-                include/GeometryService/SHiPGeometryService.h
 )
 
 # CMAKE_CXX_STANDARD above is directory-scope only and not exported;
