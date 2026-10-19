@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-10-19
+
+### Refactor
+
+- Use C++23 library facilities
+- [**breaking**] Return the Geant4 world logical volume by reference
+- [**breaking**] Look logical volumes up by std::string_view
+- [**breaking**] Remove the pre-0.5.0 spellings
+
+### Miscellaneous
+
+- Build and test on linux-aarch64
+
+### Build
+
+- [**breaking**] Require C++23
 ## [0.5.0] - 2026-10-17
 
 ### Bug fixes
@@ -50,14 +66,13 @@ All notable changes to this project will be documented in this file.
 - Get Catch2 from conda-forge instead of FetchContent
 - Require GeoModel 6.30 in find_package and set SOVERSION
 - Resolve SHiP packages from ship-experiment/stable
-
 ## [0.4.0] - 2026-08-10
 
 ### Features
 
 - Support the post-MR-612 GeoModel2G4 VolumeBuilder API
 
-### Bug Fixes
+### Bug fixes
 
 - Fail loud when the ray scanner cannot voxelise or terminate
 - Harden geometry loading and scope volume lookup to the service
@@ -76,7 +91,7 @@ All notable changes to this project will be documented in this file.
 
 - Add a process-wide geometry thread and shared service registry
 
-### Bug Fixes
+### Bug fixes
 
 - Construct the geometry thread only via geometry_thread() and never tear it down
 - Retain converted GeoModel trees for the process lifetime
@@ -84,10 +99,6 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Compare ownership instead of addresses in reload test
-
-### Miscellaneous
-
-- *(release)* V0.3.0
 ## [0.2.0] - 2026-07-16
 
 ### Features
@@ -97,7 +108,7 @@ All notable changes to this project will be documented in this file.
 - Document opt-in dev environment for shipgeometry co-development
 - Add G4RayScanner for straight-line material scans
 
-### Bug Fixes
+### Bug fixes
 
 - Unroll install-hooks loop so deno_task_shell can parse it
 - Build and run tests in CI
@@ -118,11 +129,6 @@ All notable changes to this project will be documented in this file.
 
 - Migrate from GoogleTest to Catch2
 
-### Build
-
-- Add eigen-abi-devel dependency
-- Modernize CMake dependency handling
-
 ### Miscellaneous
 
 - Add pixi lock update workflow
@@ -131,7 +137,11 @@ All notable changes to this project will be documented in this file.
 - Update pixi lock file
 - Enforce conventional commits in CI via commit-check
 - Add concurrency control and shared-config sync
-- *(release)* V0.2.0
+
+### Build
+
+- Add eigen-abi-devel dependency
+- Modernize CMake dependency handling
 ## [0.1.0] - 2026-06-18
 
 ### Features
@@ -140,7 +150,7 @@ All notable changes to this project will be documented in this file.
 - Propagate dependency prefixes in installed CMake config
 - *(build)* Default BUILD_SHARED_LIBS to ON
 
-### Bug Fixes
+### Bug fixes
 
 - Preserve consumer's CMAKE_PREFIX_PATH in installed config
 - Gate tests/ subdirectory on BUILD_TESTING
@@ -162,4 +172,3 @@ All notable changes to this project will be documented in this file.
 - Skip pixi.lock in codespell
 - Use shared ShipSoft/.github reusable pixi-cmake-build workflow
 - Add release automation via git-cliff
-- *(release)* V0.1.0
