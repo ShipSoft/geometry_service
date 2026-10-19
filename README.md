@@ -172,10 +172,25 @@ target_link_libraries(myapp PRIVATE SHiP::GeometryService)
 The package config pulls in `SHiPGeometry`, `GeoModelCore`, `GeoModelIO`,
 `GeoModelG4`, and `Geant4` automatically.
 
-### Upgrading from 0.4
+### Upgrading to 0.6
 
-0.5.0 moved everything from `ship` into `SHiP` and dropped the stutter from
-the names:
+0.6.0 requires C++23, and the exported target asks for it.
+
+`geant4WorldLogical()` returns `G4LogicalVolume&`. It throws if the conversion
+fails, so there is no null to check for. Take the address where Geant4 wants a
+pointer, and give a lambda that returns the volume from `GeometryThread::run` a
+reference return type:
+
+```cpp
+G4LogicalVolume& worldLV = gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
+```
+
+`getLogicalVolume()` takes a `std::string_view`. Calls with a `std::string` or
+a literal compile unchanged; classes that implement `IGeometryService` need the
+new signature.
+
+0.6.0 also removes the pre-0.5.0 spellings, which 0.5.0 kept as deprecated
+forwarders. Code that still uses them needs these replacements:
 
 | Before | After |
 |---|---|
@@ -185,14 +200,8 @@ the names:
 | `ship::X` | `SHiP::X` |
 | `SHiPGeometryService::SHiPGeometryService` | `SHiP::GeometryService` |
 
-The old header paths, the old class name, a `namespace ship = SHiP;` alias and
-the old CMake target keep working until 0.6.0. The alias comes from the old
-header paths only, and it conflicts with any other declaration of `namespace ship`
-in the same translation unit. That covers data-model releases before 0.6.0 as
-well as your own code, including forward declarations of the old types such as
-`namespace ship { class SHiPGeometryService; }`. Code that declares anything in
-`namespace ship` must include the new header paths. Define
-`SHIP_NO_DEPRECATED_NAMESPACE_ALIAS` to drop the alias early.
+The `namespace ship = SHiP;` alias and the `SHIP_NO_DEPRECATED_NAMESPACE_ALIAS`
+switch are gone with them.
 
 ## Licence
 
