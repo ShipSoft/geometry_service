@@ -24,14 +24,14 @@ option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 # Dependencies
 # ----------------------------------------------------------------------------
 
-find_package(SHiPGeometry CONFIG REQUIRED)
+find_package(SHiPGeometry 0.3 CONFIG REQUIRED)
 # 6.30 introduced the VolumeBuilder API used in GeometryService.cpp.
 # GeoModelG4 installs no version file, so the floor sits on its siblings,
 # which GeoModel releases in lockstep with it.
 find_package(GeoModelCore 6.30 CONFIG REQUIRED)
 find_package(GeoModelIO 6.30 CONFIG REQUIRED)
 find_package(GeoModelG4 CONFIG REQUIRED)
-find_package(Geant4 CONFIG REQUIRED)
+find_package(Geant4 11.3 CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 
 # Resolve install prefixes from the *_DIR cache variables set by find_package.
@@ -98,7 +98,7 @@ target_link_libraries(
     SHiPGeometryService
     PUBLIC GeoModelCore::GeoModelKernel ${Geant4_LIBRARIES} Threads::Threads
     PRIVATE
-        SHiPGeometry::SHiPGeometry
+        SHiP::Geometry
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelRead
         GeoModel2G4
