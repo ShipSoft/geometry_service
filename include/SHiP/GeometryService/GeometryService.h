@@ -23,13 +23,13 @@ namespace SHiP {
 /// Concrete implementation of IGeometryService backed by GeoModel.
 ///
 /// Four factory functions:
-///   GeometryService::fromSource()          — builds via SHiPGeometryBuilder
+///   GeometryService::fromSource()          — builds via SHiP::geometry::DetectorBuilder
 ///   GeometryService::fromFile(dbPath)      — reads from a GeoModel .db file
 ///   GeometryService::sharedFromFile(dbPath)— process-wide shared instance
 ///   GeometryService::fromWorld(world)      — wraps an existing GeoModel tree
 class GeometryService final : public IGeometryService {
    public:
-    /// Build geometry from the C++ SHiPGeometryBuilder.
+    /// Build geometry from the C++ SHiP::geometry::DetectorBuilder.
     [[nodiscard]] static std::unique_ptr<GeometryService> fromSource();
 
     /// Load geometry from a previously written GeoModel SQLite database.
