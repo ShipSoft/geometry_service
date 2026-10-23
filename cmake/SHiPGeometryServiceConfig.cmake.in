@@ -14,7 +14,7 @@ include(CMakeFindDependencyMacro)
 set(_SHiPGS_extra_prefixes "@_geometry_prefix@")
 list(FILTER _SHiPGS_extra_prefixes EXCLUDE REGEX "^$")
 
-find_dependency(SHiPGeometry CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+find_dependency(SHiPGeometry 0.3 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelCore 6.30 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelIO 6.30 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
 find_dependency(GeoModelG4 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})

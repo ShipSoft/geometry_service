@@ -11,7 +11,7 @@
 #include <GeoModelDBManager/GMDBManager.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
-#include <SHiPGeometry/SHiPGeometry.h>
+#include <SHiP/geometry/DetectorBuilder.h>
 #include <exception>
 #include <filesystem>
 #include <map>
@@ -31,7 +31,7 @@ namespace SHiP {
 
 std::unique_ptr<GeometryService> GeometryService::fromSource() {
     auto svc = std::unique_ptr<GeometryService>(new GeometryService());
-    SHiPGeometry::SHiPGeometryBuilder builder;
+    SHiP::geometry::DetectorBuilder builder;
     svc->m_world = builder.build();
     if (!svc->m_world)
         throw std::runtime_error("GeometryService::fromSource: geometry build returned null");
