@@ -11,9 +11,11 @@
 #include <deque>
 #include <functional>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <stop_token>
 #include <utility>
+#include <version>
 
 namespace SHiP {
 
@@ -48,22 +50,35 @@ class GeometryThread {
         using R = std::invoke_result_t<F&>;
         std::packaged_task<R()> task{std::forward<F>(f)};
         auto result = task.get_future();
+#if defined(__cpp_lib_move_only_function)
         post(std::move(task));
+#else
+        // Task is copyable here (see below), so share the move-only
+        // packaged_task instead of moving it in.
+        post([task = std::make_shared<std::packaged_task<R()> >(std::move(task))] { (*task)(); });
+#endif
         return result.get();
     }
 
    private:
+#if defined(__cpp_lib_move_only_function)
+    using Task = std::move_only_function<void()>;
+#else
+    // libc++ (macOS) has no std::move_only_function yet.
+    using Task = std::function<void()>;
+#endif
+
     // Constructible only through geometry_thread(): a second instance would
     // break the single geometry-creating-thread invariant documented there.
     GeometryThread();
     friend GeometryThread& geometry_thread();
 
-    void post(std::move_only_function<void()> task);
+    void post(Task task);
     void loop(std::stop_token stopToken);
 
     std::mutex m_mutex;
     std::condition_variable_any m_cv;
-    std::deque<std::move_only_function<void()>> m_tasks;
+    std::deque<Task> m_tasks;
     std::jthread m_thread;  ///< last: starts using the members above
 };
 
