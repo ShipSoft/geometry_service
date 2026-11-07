@@ -34,7 +34,8 @@ extra-args = [
 shipgeometry = "*"
 geomodel-core = ">=6.30"
 geomodel-g4 = ">=6.30"
-geant4 = "*"
+# Same version as global-variants.yaml in ship-conda-recipes.
+geant4 = "11.4.3.*"
 # Geant4Config.cmake calls find_dependency() on EXPAT, ZLIB and Freetype, each
 # of which needs headers and a CMake config. Since the v1-recipe modernisation
 # (conda-forge/geant4-feedstock#104) conda-forge geant4 brings in only the
@@ -58,6 +59,10 @@ shipgeometry = "*"
 # VolumeBuilder whose conversion caches are per-instance. GeometryService
 # builds against that API only.
 geomodel = ">=6.30"
+# Pinned so that the Geant4 version only changes on purpose. geomodel is
+# published once per Geant4 version, and the solver has no reason to prefer
+# the newest one: without this pin linux-aarch64 resolved Geant4 10.7.4.
+geant4 = "11.4.3.*"
 # Geant4 arrives here through geomodel, and its CMake config needs the same
 # three as [package.host-dependencies] above.
 expat = "*"
