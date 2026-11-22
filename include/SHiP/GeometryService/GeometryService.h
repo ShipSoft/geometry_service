@@ -8,6 +8,7 @@
 #include <GeoModelKernel/GeoVPhysVol.h>
 #include <cstddef>
 #include <exception>
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -81,8 +82,10 @@ class GeometryService final : public IGeometryService {
 
     PVConstLink m_world;  ///< intrusive ref-counted GeoModel tree
     std::once_flag m_g4ConversionDone;
-    G4LogicalVolume* m_g4WorldLV{nullptr};  ///< written once via call_once
-    std::exception_ptr m_conversionError;   ///< sticky conversion failure
+    /// The converted world volume (null until conversion), or the exception
+    /// that made the conversion fail, kept so every later call rethrows it.
+    /// Written once via call_once.
+    std::expected<G4LogicalVolume*, std::exception_ptr> m_g4WorldLV{nullptr};
     /// First converted volume of each name, depth-first; filled with
     /// m_g4WorldLV, so later renames are not seen.
     std::unordered_map<std::string, G4LogicalVolume*, NameHash, std::equal_to<>> m_lvByName;

@@ -13,6 +13,7 @@
 #include <GeoModelRead/ReadGeoModel.h>
 #include <SHiP/geometry/DetectorBuilder.h>
 #include <exception>
+#include <expected>
 #include <filesystem>
 #include <map>
 #include <memory>
@@ -145,26 +146,27 @@ G4LogicalVolume& GeometryService::geant4WorldLogical() {
         // Store the error and rethrow it on every call instead.
         try {
             VolumeBuilder builder{"SHiP"};
-            m_g4WorldLV = builder.Build(m_world);
-            if (!m_g4WorldLV) {
+            auto* const world = builder.Build(m_world);
+            if (!world) {
                 throw std::runtime_error("GeometryService: GeoModel→Geant4 conversion failed");
             }
             std::unordered_set<const G4LogicalVolume*> visited;
-            indexLogicalVolumes(m_g4WorldLV, m_lvByName, visited);
+            indexLogicalVolumes(world, m_lvByName, visited);
+            m_g4WorldLV = world;
         } catch (...) {
-            m_conversionError = std::current_exception();
+            m_g4WorldLV = std::unexpected{std::current_exception()};
         }
     });
-    if (m_conversionError) {
-        std::rethrow_exception(m_conversionError);
+    if (!m_g4WorldLV) {
+        std::rethrow_exception(m_g4WorldLV.error());
     }
-    return *m_g4WorldLV;
+    return **m_g4WorldLV;
 }
 
 G4LogicalVolume* GeometryService::getLogicalVolume(std::string_view name) const {
     // A failed conversion must not look like "not converted yet".
-    if (m_conversionError) {
-        std::rethrow_exception(m_conversionError);
+    if (!m_g4WorldLV) {
+        std::rethrow_exception(m_g4WorldLV.error());
     }
     // Index this service's own tree rather than search G4LogicalVolumeStore:
     // retained trees of expired instances of the same file leave
