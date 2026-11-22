@@ -23,10 +23,10 @@ inline constexpr double kCopperDensity = 8.96;  // g/cm3
 
 inline PVConstLink buildTestWorld() {
     namespace GU = GeoModelKernelUnits;
-    auto* nitrogen = new GeoElement("Nitrogen", "N", 7, 14.007 * GU::g / GU::mole);
-    auto* oxygen = new GeoElement("Oxygen", "O", 8, 15.999 * GU::g / GU::mole);
-    auto* ironElement = new GeoElement("Iron", "Fe", 26, 55.845 * GU::g / GU::mole);
-    auto* copperElement = new GeoElement("Copper", "Cu", 29, 63.546 * GU::g / GU::mole);
+    const auto* nitrogen = new GeoElement("Nitrogen", "N", 7, 14.007 * GU::g / GU::mole);
+    const auto* oxygen = new GeoElement("Oxygen", "O", 8, 15.999 * GU::g / GU::mole);
+    const auto* ironElement = new GeoElement("Iron", "Fe", 26, 55.845 * GU::g / GU::mole);
+    const auto* copperElement = new GeoElement("Copper", "Cu", 29, 63.546 * GU::g / GU::mole);
 
     auto* gas = new GeoMaterial("TestGas", kGasDensity * GU::g / GU::cm3);
     gas->add(nitrogen, 0.77);

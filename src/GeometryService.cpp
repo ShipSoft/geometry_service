@@ -33,8 +33,9 @@ std::unique_ptr<GeometryService> GeometryService::fromSource() {
     auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     SHiP::geometry::DetectorBuilder builder;
     svc->m_world = builder.build();
-    if (!svc->m_world)
+    if (!svc->m_world) {
         throw std::runtime_error("GeometryService::fromSource: geometry build returned null");
+    }
     return svc;
 }
 
@@ -45,19 +46,22 @@ std::unique_ptr<GeometryService> GeometryService::fromSource() {
 std::unique_ptr<GeometryService> GeometryService::fromFile(const std::filesystem::path& dbPath) {
     // GMDBManager opens via sqlite3_open, which silently creates a missing
     // file; validate up front to fail with a clear message instead.
-    if (!std::filesystem::is_regular_file(dbPath))
+    if (!std::filesystem::is_regular_file(dbPath)) {
         throw std::runtime_error("GeometryService::fromFile: no such file: " + dbPath.string());
+    }
     auto svc = std::unique_ptr<GeometryService>(new GeometryService());
-    auto db = std::make_shared<GMDBManager>(dbPath.string());
+    const auto db = std::make_shared<GMDBManager>(dbPath.string());
     // An existing but corrupt or non-GeoModel file leaves the manager
     // unopened; ReadGeoModel would fail deep inside library code otherwise.
-    if (!db->checkIsDBOpen())
+    if (!db->checkIsDBOpen()) {
         throw std::runtime_error("GeometryService::fromFile: not a GeoModel database: " +
                                  dbPath.string());
+    }
     GeoModelIO::ReadGeoModel reader(db);
     svc->m_world = reader.buildGeoModel();
-    if (!svc->m_world)
+    if (!svc->m_world) {
         throw std::runtime_error("GeometryService::fromFile: buildGeoModel returned null");
+    }
     return svc;
 }
 
@@ -72,18 +76,20 @@ std::shared_ptr<GeometryService> GeometryService::sharedFromFile(
 
     // Canonicalisation needs an existing file; fromFile would also reject a
     // missing one, but only after the registry lookup keyed a bogus path.
-    if (!std::filesystem::is_regular_file(dbPath))
+    if (!std::filesystem::is_regular_file(dbPath)) {
         throw std::runtime_error("GeometryService::sharedFromFile: no such file: " +
                                  dbPath.string());
+    }
     const auto key = std::filesystem::canonical(dbPath).string();
 
     // The lock is held across the load so concurrent first callers cannot
     // both read the file; contention is limited to job initialisation.
-    std::lock_guard lk{registryMutex};
+    const std::scoped_lock lk{registryMutex};
     std::erase_if(registry, [](const auto& entry) { return entry.second.expired(); });
     auto& slot = registry[key];
-    if (auto existing = slot.lock())
+    if (auto existing = slot.lock()) {
         return existing;
+    }
     std::shared_ptr<GeometryService> svc = fromFile(key);
     slot = svc;
     return svc;
@@ -94,8 +100,9 @@ std::shared_ptr<GeometryService> GeometryService::sharedFromFile(
 // ----------------------------------------------------------------------------
 
 std::unique_ptr<GeometryService> GeometryService::fromWorld(PVConstLink world) {
-    if (!world)
+    if (!world) {
         throw std::runtime_error("GeometryService::fromWorld: world is null");
+    }
     auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     svc->m_world = std::move(world);
     return svc;
@@ -119,8 +126,9 @@ namespace {
 template <typename Index>
 void indexLogicalVolumes(G4LogicalVolume* lv, Index& index,
                          std::unordered_set<const G4LogicalVolume*>& visited) {
-    if (!visited.insert(lv).second)
+    if (!visited.insert(lv).second) {
         return;
+    }
     index.emplace(lv->GetName(), lv);
     for (auto i = 0uz; i < lv->GetNoDaughters(); ++i) {
         indexLogicalVolumes(lv->GetDaughter(i)->GetLogicalVolume(), index, visited);
@@ -130,7 +138,7 @@ void indexLogicalVolumes(G4LogicalVolume* lv, Index& index,
 }  // namespace
 
 G4LogicalVolume& GeometryService::geant4WorldLogical() {
-    std::call_once(m_g4ConversionDone, [this]() {
+    std::call_once(m_g4ConversionDone, [this] {
         // A failed conversion is sticky: it can leave partially registered
         // volumes in the Geant4 stores, so a retry could silently produce a
         // mixed tree.
@@ -138,23 +146,26 @@ G4LogicalVolume& GeometryService::geant4WorldLogical() {
         try {
             VolumeBuilder builder{"SHiP"};
             m_g4WorldLV = builder.Build(m_world);
-            if (!m_g4WorldLV)
+            if (!m_g4WorldLV) {
                 throw std::runtime_error("GeometryService: GeoModel→Geant4 conversion failed");
+            }
             std::unordered_set<const G4LogicalVolume*> visited;
             indexLogicalVolumes(m_g4WorldLV, m_lvByName, visited);
         } catch (...) {
             m_conversionError = std::current_exception();
         }
     });
-    if (m_conversionError)
+    if (m_conversionError) {
         std::rethrow_exception(m_conversionError);
+    }
     return *m_g4WorldLV;
 }
 
 G4LogicalVolume* GeometryService::getLogicalVolume(std::string_view name) const {
     // A failed conversion must not look like "not converted yet".
-    if (m_conversionError)
+    if (m_conversionError) {
         std::rethrow_exception(m_conversionError);
+    }
     // Index this service's own tree rather than search G4LogicalVolumeStore:
     // retained trees of expired instances of the same file leave
     // identically named volumes in the store, and a store lookup would

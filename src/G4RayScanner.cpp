@@ -19,16 +19,18 @@
 namespace SHiP {
 
 G4RayScanner::G4RayScanner(G4LogicalVolume* top) {
-    if (!top)
+    if (!top) {
         throw std::invalid_argument("G4RayScanner: top logical volume is null");
+    }
     // G4GeometryManager's closed state is one process-wide flag, not
     // per-tree: closing while already closed (another scanner alive, or a
     // run manager mid-run) would be a silent no-op and this scanner would
     // navigate without voxelisation. Fail loud instead.
-    if (G4GeometryManager::GetInstance()->IsGeometryClosed())
+    if (G4GeometryManager::GetInstance()->IsGeometryClosed()) {
         throw std::logic_error(
             "G4RayScanner: Geant4 geometry is already closed "
             "(another G4RayScanner alive, or a run in progress)");
+    }
     // Owned locally until construction succeeds: the destructor does not run
     // after a throw, and the placement has already registered itself in the
     // physical-volume store.
@@ -53,8 +55,9 @@ G4RayScanner::~G4RayScanner() {
     // Deopt only while the geometry is closed (OpenGeometry is a no-op
     // otherwise). Caveat: the closed flag is global, so if a run manager
     // re-closed the full geometry meanwhile, this also flips its state open.
-    if (G4GeometryManager::GetInstance()->IsGeometryClosed())
+    if (G4GeometryManager::GetInstance()->IsGeometryClosed()) {
         G4GeometryManager::GetInstance()->OpenGeometry(m_world);
+    }
     delete m_world;
 }
 
@@ -67,8 +70,9 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     const double scale =
         std::max({std::abs(direction.x()), std::abs(direction.y()), std::abs(direction.z())});
     if (!std::isfinite(direction.x()) || !std::isfinite(direction.y()) ||
-        !std::isfinite(direction.z()) || scale == 0.)
+        !std::isfinite(direction.z()) || scale == 0.) {
         throw std::invalid_argument("G4RayScanner::scan: direction must be finite and non-zero");
+    }
     const G4ThreeVector dir = (direction / scale).unit();
     G4ThreeVector point = origin;
     RayScan result;
@@ -78,8 +82,9 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     const G4VSolid* solid = m_world->GetLogicalVolume()->GetSolid();
     if (solid->Inside(point) == kOutside) {
         const double entry = solid->DistanceToIn(point, dir);
-        if (entry == kInfinity)
+        if (entry == kInfinity) {
             return result;
+        }
         point += entry * dir;
         result.entry = entry;
     }
@@ -88,7 +93,7 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     m_navigator.ResetStackAndState();
     // Direction-aware locate so a point on a boundary resolves to the volume
     // ahead of the ray.
-    G4VPhysicalVolume* volume = m_navigator.LocateGlobalPointAndSetup(
+    const G4VPhysicalVolume* volume = m_navigator.LocateGlobalPointAndSetup(
         point, &dir, /*pRelativeSearch=*/false, /*ignoreDirection=*/false);
     // Boundary count is bounded by the geometry's depth times its daughters;
     // anything near the cap indicates a navigation loop, not a real geometry.
@@ -96,18 +101,21 @@ RayScan G4RayScanner::scan(const G4ThreeVector& origin, const G4ThreeVector& dir
     // still returns normally while a truncated scan never looks like one.
     constexpr int kMaxSteps = 100000;
     for (int steps = 0; volume; ++steps) {
-        if (steps == kMaxSteps)
+        if (steps == kMaxSteps) {
             throw std::runtime_error("G4RayScanner::scan: step limit reached (navigation loop?)");
+        }
         double safety = 0.;
         const double step = m_navigator.ComputeStep(point, dir, kInfinity, safety);
-        if (step == kInfinity)
+        if (step == kInfinity) {
             break;  // no boundary ahead (world exit edge case)
+        }
         if (step > 0.) {
             const G4Material* material = volume->GetLogicalVolume()->GetMaterial();
-            if (!segments.empty() && segments.back().material == material)
+            if (!segments.empty() && segments.back().material == material) {
                 segments.back().length += step;
-            else
-                segments.push_back({material, step});
+            } else {
+                segments.push_back({.material = material, .length = step});
+            }
         }
         point += step * dir;
         m_navigator.SetGeometricallyLimitedStep();

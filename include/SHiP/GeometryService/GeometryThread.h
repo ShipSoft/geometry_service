@@ -50,7 +50,7 @@ class GeometryThread {
         using R = std::invoke_result_t<F&>;
         std::packaged_task<R()> task{std::forward<F>(f)};
         auto result = task.get_future();
-#if defined(__cpp_lib_move_only_function)
+#ifdef __cpp_lib_move_only_function
         post(std::move(task));
 #else
         // Task is copyable here (see below), so share the move-only
@@ -61,7 +61,7 @@ class GeometryThread {
     }
 
    private:
-#if defined(__cpp_lib_move_only_function)
+#ifdef __cpp_lib_move_only_function
     using Task = std::move_only_function<void()>;
 #else
     // libc++ (macOS) has no std::move_only_function yet.
