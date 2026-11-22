@@ -13,7 +13,7 @@ GeometryThread::GeometryThread()
 
 void GeometryThread::post(Task task) {
     {
-        std::lock_guard lk{m_mutex};
+        const std::scoped_lock lk{m_mutex};
         m_tasks.push_back(std::move(task));
     }
     m_cv.notify_one();

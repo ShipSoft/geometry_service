@@ -72,18 +72,21 @@ TEST_CASE("GeometryThreadTest.ConcurrentCallersSerialise", "[geometry_thread]") 
     std::atomic<int> active{0};
     std::atomic<bool> overlapped{false};
     auto task = [&] {
-        if (++active > 1)
+        if (++active > 1) {
             overlapped = true;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         --active;
     };
     std::thread a{[&] {
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < 10; ++i) {
             gt.run(task);
+        }
     }};
     std::thread b{[&] {
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < 10; ++i) {
             gt.run(task);
+        }
     }};
     a.join();
     b.join();
@@ -116,7 +119,7 @@ std::filesystem::path testDir() {
 }  // namespace
 
 TEST_CASE("SharedFromFileTest.SameCanonicalPathYieldsSameInstance", "[shared_registry]") {
-    auto dir = testDir();
+    const auto dir = testDir();
     writeTestDb(dir / "world.db");
     auto first = GeometryService::sharedFromFile((dir / "world.db").string());
     auto second = GeometryService::sharedFromFile((dir / "world.db").string());
@@ -128,7 +131,7 @@ TEST_CASE("SharedFromFileTest.SameCanonicalPathYieldsSameInstance", "[shared_reg
 }
 
 TEST_CASE("SharedFromFileTest.DifferentFilesYieldDistinctInstances", "[shared_registry]") {
-    auto dir = testDir();
+    const auto dir = testDir();
     writeTestDb(dir / "one.db");
     writeTestDb(dir / "two.db");
     auto one = GeometryService::sharedFromFile((dir / "one.db").string());
@@ -138,9 +141,9 @@ TEST_CASE("SharedFromFileTest.DifferentFilesYieldDistinctInstances", "[shared_re
 }
 
 TEST_CASE("SharedFromFileTest.ExpiredEntryIsReloaded", "[shared_registry]") {
-    auto dir = testDir();
+    const auto dir = testDir();
     writeTestDb(dir / "world.db");
-    auto path = (dir / "world.db").string();
+    const auto path = (dir / "world.db").string();
     auto first = GeometryService::sharedFromFile(path);
     const std::weak_ptr<GeometryService> weak{first};
     first.reset();  // last owner: the registry's weak_ptr expires
@@ -153,9 +156,9 @@ TEST_CASE("SharedFromFileTest.ExpiredEntryIsReloaded", "[shared_registry]") {
 }
 
 TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]") {
-    auto dir = testDir();
+    const auto dir = testDir();
     writeTestDb(dir / "world.db");
-    auto path = (dir / "world.db").string();
+    const auto path = (dir / "world.db").string();
     auto& gt = SHiP::geometry_thread();
 
     auto first = GeometryService::sharedFromFile(path);
@@ -205,9 +208,9 @@ TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_t
     // GENIE-style user: convert and scan on the geometry thread.
     auto svc = GeometryService::fromWorld(buildTestWorld());
     // The reference return type makes run() hand back the volume itself.
-    auto* worldLV = &gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
+    auto* worldLV = &gt.run([&] -> auto& { return svc->geant4WorldLogical(); });
     auto scanner = gt.run([&] { return std::make_unique<G4RayScanner>(worldLV); });
-    auto checkScan = [&] {
+    const auto checkScan = [&] {
         auto [entry, segments] = gt.run([&] { return scanner->scan({0, 0, -1500}, {0, 0, 1}); });
         CHECK_THAT(entry, WithinAbs(500., 1e-6));
         REQUIRE(segments.size() == 5U);
@@ -236,7 +239,8 @@ TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_t
             try {
                 G4Threading::G4SetThreadId(1);
                 G4WorkerThread::BuildGeometryAndPhysicsVector();
-                auto* iron = G4LogicalVolumeStore::GetInstance()->GetVolume("TestIronBox", false);
+                const auto* iron =
+                    G4LogicalVolumeStore::GetInstance()->GetVolume("TestIronBox", false);
                 readOk = iron != nullptr && iron->GetSolid() != nullptr &&
                          iron->GetMaterial()->GetName() == "TestIron";
             } catch (...) {
@@ -244,8 +248,9 @@ TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_t
             }
         }};
         worker.join();
-        if (error)
+        if (error) {
             std::rethrow_exception(error);
+        }
         CHECK(readOk);
     }
 

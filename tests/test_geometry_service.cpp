@@ -19,8 +19,8 @@ TEST_CASE("GeometryServiceTest.FromFileMissingFileThrows", "[geometry_service]")
 }
 
 TEST_CASE("GeometryServiceTest.FromFileCorruptFileThrows", "[geometry_service]") {
-    auto path = std::filesystem::temp_directory_path() /
-                ("shipgeomsvc_corrupt_" + std::to_string(getpid()) + ".db");
+    const auto path = std::filesystem::temp_directory_path() /
+                      ("shipgeomsvc_corrupt_" + std::to_string(getpid()) + ".db");
     {
         std::ofstream out{path};
         out << "not a sqlite database";
