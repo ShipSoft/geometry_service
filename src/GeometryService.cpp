@@ -12,6 +12,7 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
 #include <SHiP/geometry/DetectorBuilder.h>
+#include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <map>
@@ -172,6 +173,27 @@ G4LogicalVolume* GeometryService::getLogicalVolume(std::string_view name) const 
     // return the first — stale — match. Empty until conversion.
     const auto it = m_lvByName.find(name);
     return it == m_lvByName.end() ? nullptr : it->second;
+}
+
+// ----------------------------------------------------------------------------
+// Geometry database lookup
+// ----------------------------------------------------------------------------
+
+std::filesystem::path resolveGeometryDbPath(const std::filesystem::path& path) {
+    if (std::filesystem::exists(path)) {
+        return path;
+    }
+    if (path == path.filename()) {
+        // NOLINTNEXTLINE(concurrency-mt-unsafe): read-only, at configuration time
+        if (const auto* root = std::getenv("SHIPGEOMETRY_ROOT")) {
+            auto resolved = std::filesystem::path{root} / "share" / "geometry" / path;
+            if (std::filesystem::exists(resolved)) {
+                return resolved;
+            }
+        }
+    }
+    throw std::runtime_error("Cannot locate geometry database '" + path.string() +
+                             "'; set SHIPGEOMETRY_ROOT or provide an absolute path");
 }
 
 }  // namespace SHiP

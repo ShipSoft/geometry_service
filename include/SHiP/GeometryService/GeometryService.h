@@ -88,4 +88,12 @@ class GeometryService final : public IGeometryService {
     std::unordered_map<std::string, G4LogicalVolume*, NameHash, std::equal_to<>> m_lvByName;
 };
 
+/// Path of a GeoModel geometry database. A path that exists is returned as
+/// given. A bare file name that does not exist is looked up in
+/// `$SHIPGEOMETRY_ROOT/share/geometry/`, the flat install layout of the
+/// shipgeometry package. Throws `std::runtime_error` otherwise. That includes
+/// a missing path with directory components: falling back to the installed
+/// geometry for a mistyped path would run the job on the wrong detector.
+[[nodiscard]] std::filesystem::path resolveGeometryDbPath(const std::filesystem::path& path);
+
 }  // namespace SHiP
