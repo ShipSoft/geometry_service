@@ -4,6 +4,12 @@
 
 #include "SHiP/GeometryService/GeometryThread.h"
 
+#include <G4GeometryManager.hh>
+#include <G4LogicalVolumeStore.hh>
+#include <G4PhysicalVolumeStore.hh>
+#include <G4RegionStore.hh>
+#include <G4SolidStore.hh>
+
 #include <utility>
 
 namespace SHiP {
@@ -37,6 +43,16 @@ GeometryThread& geometry_thread() {
     // store destructors may still post tasks (see the header contract).
     static GeometryThread* thread = new GeometryThread;
     return *thread;
+}
+
+void clean_geant4_geometry_stores() {
+    geometry_thread().run([] {
+        G4GeometryManager::GetInstance()->OpenGeometry();
+        G4RegionStore::Clean();
+        G4PhysicalVolumeStore::Clean();
+        G4LogicalVolumeStore::Clean();
+        G4SolidStore::Clean();
+    });
 }
 
 }  // namespace SHiP

@@ -93,4 +93,15 @@ class GeometryThread {
 /// library so dlopened plugins all see the same instance.
 GeometryThread& geometry_thread();
 
+/// Empties the Geant4 geometry stores (regions, physical and logical volumes,
+/// solids) on the geometry thread, after opening the geometry. Call it once,
+/// when the last user of the converted geometry is gone.
+///
+/// Without it the stores' static destructors delete the volumes on the main
+/// thread at process exit. The volumes' thread-local data only exists on the
+/// geometry thread, so that deletion crashes. A locked store's Clean() also
+/// skips the cross-store back-references the individual destructors would
+/// follow. Every pointer into the converted geometry dangles afterwards.
+void clean_geant4_geometry_stores();
+
 }  // namespace SHiP
