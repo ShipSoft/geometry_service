@@ -87,6 +87,12 @@ TEST_CASE("ResolveGeometryDbPath.MissingPathWithDirectoryDoesNotFallBack", "[geo
     CHECK_THROWS_AS(SHiP::resolveGeometryDbPath("mistyped/installed.db"), std::runtime_error);
 }
 
+TEST_CASE("ResolveGeometryDbPath.EmptyPathThrows", "[geometry_service]") {
+    // Appending an empty path would name the installed geometry directory.
+    const InstalledGeometry installed{"installed.db"};
+    CHECK_THROWS_AS(SHiP::resolveGeometryDbPath(""), std::runtime_error);
+}
+
 TEST_CASE("GeometryServiceTest.FromWorldNullThrows", "[geometry_service]") {
     CHECK_THROWS_AS(GeometryService::fromWorld(nullptr), std::runtime_error);
 }

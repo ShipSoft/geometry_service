@@ -183,7 +183,7 @@ std::filesystem::path resolveGeometryDbPath(const std::filesystem::path& path) {
     if (std::filesystem::exists(path)) {
         return path;
     }
-    if (path == path.filename()) {
+    if (!path.empty() && path == path.filename()) {
         // NOLINTNEXTLINE(concurrency-mt-unsafe): read-only, at configuration time
         if (const auto* root = std::getenv("SHIPGEOMETRY_ROOT")) {
             auto resolved = std::filesystem::path{root} / "share" / "geometry" / path;
