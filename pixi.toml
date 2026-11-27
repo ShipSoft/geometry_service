@@ -163,6 +163,17 @@ sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/pre-commit
 sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/commit-msg"
 '''
 
+# Build this checkout as the split conda packages (geometry-service-core,
+# geometry-service-g4 and the shipgeometryservice metapackage) into a local
+# file:// channel, for downstream dev environments that need the split. The
+# [package] section above builds one package with everything.
+[feature.package.dependencies]
+rattler-build = ">=0.35"
+
+[feature.package.tasks]
+build-local-channel = "rattler-build build --recipe recipe/recipe.yaml --output-dir ../ship-local-channel --channel https://prefix.dev/ship-experiment/stable --channel conda-forge"
+
 [environments]
 default = { solve-group = "default" }
 lint = { features = ["lint"], solve-group = "lint" }
+package = { features = ["package"], solve-group = "package" }

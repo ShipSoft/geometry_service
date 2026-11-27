@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: 2026 CERN for the benefit of the SHiP Collaboration
+#
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# Dev twin of ship-conda-recipes/recipes/shipgeometryservice/recipe.yaml,
+# built by the build-local-channel pixi task so downstream dev environments
+# can consume this checkout as the split conda packages from a local file://
+# channel. The only difference from the release recipe is the source (this
+# checkout instead of the release tarball); keep everything else in lockstep.
+context:
+  version: "0.7.0"
+
+recipe:
+  name: shipgeometryservice
+  version: ${{ version }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  skip:
+    - win
+
+outputs:
+  - staging:
+      name: geometry-service-build
+    build:
+      script: |
+        cmake ${CMAKE_ARGS} -S ${SRC_DIR} -B build \
+            -DCMAKE_INSTALL_LIBDIR=lib \
+            -DBUILD_G4=ON \
+            -DBUILD_TESTING=OFF
+        cmake --build build --parallel ${CPU_COUNT}
+        cmake --install build
+    requirements:
+      build:
+        - ${{ compiler('cxx') }}
+        - if: linux
+          then: sysroot_${{ target_platform }} 2.17.*
+        - cmake
+        - make
+      host:
+        - geomodel-core
+        - geomodel-g4
+        - geant4
+        # Geant4Config.cmake calls find_dependency() on all three; see
+        # "Known upstream workarounds" in the ship-conda-recipes README.
+        - expat
+        - zlib
+        - freetype
+        # GeoModelCore's CMake config looks for Eigen3.
+        - eigen-abi-devel
+
+  # Core and GeoModel components: no Geant4.
+  - package:
+      name: geometry-service-core
+    inherit: geometry-service-build
+    build:
+      files:
+        - lib/libSHiPGeometryService.so*
+        - include/SHiP/GeometryService/GeometryService.h
+        - include/SHiP/GeometryService/GeoModel.h
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceConfig.cmake
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceConfigVersion.cmake
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceTargets.cmake
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceTargets-*.cmake
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceGeoModelTargets.cmake
+    requirements:
+      run:
+        # The GeoModel component's find_dependency(GeoModelCore) needs the
+        # CMake config, and that config looks for Eigen3.
+        - geomodel-core
+        - eigen-abi-devel
+      run_exports:
+        - ${{ pin_subpackage('geometry-service-core', upper_bound='x.x') }}
+      # The staging host has Geant4 for the g4 output only.
+      ignore_run_exports:
+        from_package:
+          - geomodel-g4
+          - geant4
+          - expat
+          - zlib
+          - freetype
+    tests:
+      - script:
+          - test -f $PREFIX/lib/libSHiPGeometryService.so
+          - test -f $PREFIX/include/SHiP/GeometryService/GeometryService.h
+          - test -f $PREFIX/include/SHiP/GeometryService/GeoModel.h
+          - test ! -e $PREFIX/lib/libSHiPGeometryServiceG4.so
+          - test ! -e $PREFIX/include/SHiP/GeometryService/IGeometryService.h
+          - grep -q "SHiP::GeometryService" $PREFIX/lib/cmake/SHiPGeometryService/SHiPGeometryServiceTargets.cmake
+
+  - package:
+      name: geometry-service-g4
+    inherit: geometry-service-build
+    build:
+      files:
+        - lib/libSHiPGeometryServiceG4.so*
+        - include/SHiP/GeometryService/Geant4Geometry.h
+        - include/SHiP/GeometryService/G4RayScanner.h
+        - include/SHiP/GeometryService/GeometryThread.h
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceG4Targets.cmake
+        - lib/cmake/SHiPGeometryService/SHiPGeometryServiceG4Targets-*.cmake
+    requirements:
+      run:
+        - ${{ pin_subpackage('geometry-service-core', exact=True) }}
+        - geomodel-g4
+        # The G4 component's find_dependency(Geant4) needs geant4's CMake
+        # config, which calls find_dependency() on all three; see "Known
+        # upstream workarounds" in the ship-conda-recipes README.
+        - geant4
+        - expat
+        - zlib
+        - freetype
+      run_exports:
+        - ${{ pin_subpackage('geometry-service-g4', upper_bound='x.x') }}
+    tests:
+      - script:
+          - test -f $PREFIX/lib/libSHiPGeometryServiceG4.so
+          - test -f $PREFIX/include/SHiP/GeometryService/Geant4Geometry.h
+          - test -f $PREFIX/lib/cmake/SHiPGeometryService/SHiPGeometryServiceG4Targets.cmake
+
+  # Both parts, for consumers that have not moved to the split packages yet.
+  - package:
+      name: shipgeometryservice
+    build:
+      files: []
+    requirements:
+      run:
+        - ${{ pin_subpackage('geometry-service-core', exact=True) }}
+        - ${{ pin_subpackage('geometry-service-g4', exact=True) }}
+      run_exports:
+        - ${{ pin_subpackage('geometry-service-core', upper_bound='x.x') }}
+        - ${{ pin_subpackage('geometry-service-g4', upper_bound='x.x') }}
+
+about:
+  homepage: https://github.com/ShipSoft/geometry_service
+  repository: https://github.com/ShipSoft/geometry_service
+  summary: Framework-agnostic C++23 service wrapping the SHiP GeoModel geometry
+  description: |
+    SHiPGeometryService loads the SHiP detector geometry from a GeoModel
+    SQLite file behind an interface without GeoModel or Geant4 types
+    (geometry-service-core). Optional components give access to the
+    GeoModel tree, and convert it lazily to Geant4 logical volumes
+    (geometry-service-g4).
+  license: LGPL-3.0-or-later
+  license_file: LICENSES/LGPL-3.0-or-later.txt
+
+extra:
+  recipe-maintainers:
+    - olantwin
