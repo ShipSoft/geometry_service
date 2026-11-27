@@ -4,25 +4,61 @@
 
 @PACKAGE_INIT@
 
+# Components:
+#   (none)    SHiP::GeometryService: loads geometry; no GeoModel or Geant4
+#             in its interface.
+#   GeoModel  SHiP::GeometryServiceGeoModel: GeoModel.h interop.
+#   G4        SHiP::GeometryServiceG4: Geant4 conversion, G4RayScanner,
+#             geometry_thread().
+# Each component looks up its dependencies only when it is requested.
+
 include(CMakeFindDependencyMacro)
 
-# Hint the build-time dependency prefixes so find_dependency succeeds
-# without downstream consumers needing to add transitive deps to
-# CMAKE_PREFIX_PATH. HINTS (searched before the default paths) avoids
-# mutating the consumer's CMAKE_PREFIX_PATH, which a failing
-# find_dependency's early return would leave un-restored.
-set(_SHiPGS_extra_prefixes "@_geometry_prefix@")
+# Hint the build-time dependency prefix so find_dependency succeeds without
+# downstream consumers needing to add transitive deps to CMAKE_PREFIX_PATH.
+# HINTS (searched before the default paths) avoids mutating the consumer's
+# CMAKE_PREFIX_PATH, which a failing find_dependency's early return would
+# leave un-restored.
+set(_SHiPGS_extra_prefixes "@PACKAGE__geomodel_prefix@")
 list(FILTER _SHiPGS_extra_prefixes EXCLUDE REGEX "^$")
 
-find_dependency(SHiPGeometry 0.3 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(GeoModelCore 6.30 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(GeoModelIO 6.30 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(GeoModelG4 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(Geant4 11.3 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
-find_dependency(Threads REQUIRED)
+set(_SHiPGS_want_geomodel FALSE)
+if(
+    "GeoModel" IN_LIST SHiPGeometryService_FIND_COMPONENTS
+    OR "G4" IN_LIST SHiPGeometryService_FIND_COMPONENTS
+)
+    set(_SHiPGS_want_geomodel TRUE)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceTargets.cmake")
 
+# The G4 component's library links GeoModel internally; requesting G4
+# also brings in the GeoModel component for static builds.
+if(_SHiPGS_want_geomodel)
+    find_dependency(GeoModelCore 6.30 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+    include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceGeoModelTargets.cmake")
+    set(SHiPGeometryService_GeoModel_FOUND TRUE)
+else()
+    set(SHiPGeometryService_GeoModel_FOUND FALSE)
+endif()
+
+set(_SHiPGS_g4_target_file
+    "${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryServiceG4Targets.cmake"
+)
+if(
+    "G4" IN_LIST SHiPGeometryService_FIND_COMPONENTS
+    AND EXISTS "${_SHiPGS_g4_target_file}"
+)
+    find_dependency(Geant4 11.3 CONFIG REQUIRED HINTS ${_SHiPGS_extra_prefixes})
+    find_dependency(Threads REQUIRED)
+    include("${_SHiPGS_g4_target_file}")
+    set(SHiPGeometryService_G4_FOUND TRUE)
+else()
+    set(SHiPGeometryService_G4_FOUND FALSE)
+endif()
+
 check_required_components(SHiPGeometryService)
 
+unset(_SHiPGS_g4_target_file)
+unset(_SHiPGS_want_geomodel)
 unset(_SHiPGS_extra_prefixes)

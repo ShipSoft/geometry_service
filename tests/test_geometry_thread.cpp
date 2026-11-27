@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "SHiP/GeometryService/G4RayScanner.h"
+#include "SHiP/GeometryService/Geant4Geometry.h"
+#include "SHiP/GeometryService/GeoModel.h"
 #include "SHiP/GeometryService/GeometryService.h"
 #include "SHiP/GeometryService/GeometryThread.h"
 #include "test_world.h"
@@ -37,6 +39,7 @@
 
 using Catch::Matchers::WithinAbs;
 using SHiP::G4RayScanner;
+using SHiP::Geant4Geometry;
 using SHiP::GeometryService;
 
 // ----------------------------------------------------------------------------
@@ -161,18 +164,18 @@ TEST_CASE("SharedFromFileTest.ReloadAfterConversionIsSafe", "[shared_registry]")
     const auto path = (dir / "world.db").string();
     auto& gt = SHiP::geometry_thread();
 
-    auto first = GeometryService::sharedFromFile(path);
-    gt.run([&] { first->geant4WorldLogical(); });
-    auto* firstIron = gt.run([&] { return first->getLogicalVolume("TestIronBox"); });
+    auto first = Geant4Geometry::of(GeometryService::sharedFromFile(path));
+    gt.run([&] { (void)first->worldLogical(); });
+    auto* firstIron = gt.run([&] { return first->logicalVolume("TestIronBox"); });
     REQUIRE(firstIron != nullptr);
     first.reset();  // converted instance expires; its G4 volumes stay in the stores
 
-    auto reloaded = GeometryService::sharedFromFile(path);
-    gt.run([&] { reloaded->geant4WorldLogical(); });
+    auto reloaded = Geant4Geometry::of(GeometryService::sharedFromFile(path));
+    gt.run([&] { (void)reloaded->worldLogical(); });
     // Name lookup is scoped to the service's own tree: the retained first
     // conversion left identically named volumes in the global store, and a
     // store-wide search would return the stale first match.
-    auto* reloadedIron = gt.run([&] { return reloaded->getLogicalVolume("TestIronBox"); });
+    auto* reloadedIron = gt.run([&] { return reloaded->logicalVolume("TestIronBox"); });
     REQUIRE(reloadedIron != nullptr);
     CHECK(reloadedIron != firstIron);
 
@@ -206,9 +209,9 @@ TEST_CASE("GeometryThreadTest.TwoGeant4UsersShareOneCreatorThread", "[geometry_t
     auto& gt = SHiP::geometry_thread();
 
     // GENIE-style user: convert and scan on the geometry thread.
-    auto svc = GeometryService::fromWorld(buildTestWorld());
+    auto svc = Geant4Geometry::of(SHiP::geometryServiceFromWorld(buildTestWorld()));
     // The reference return type makes run() hand back the volume itself.
-    auto* worldLV = &gt.run([&] -> auto& { return svc->geant4WorldLogical(); });
+    auto* worldLV = &gt.run([&] -> auto& { return svc->worldLogical(); });
     auto scanner = gt.run([&] { return std::make_unique<G4RayScanner>(worldLV); });
     const auto checkScan = [&] {
         auto [entry, segments] = gt.run([&] { return scanner->scan({0, 0, -1500}, {0, 0, 1}); });

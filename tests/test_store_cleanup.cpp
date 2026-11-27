@@ -5,7 +5,8 @@
 // In its own executable: emptying the Geant4 stores invalidates every
 // converted geometry in the process.
 
-#include "SHiP/GeometryService/GeometryService.h"
+#include "SHiP/GeometryService/Geant4Geometry.h"
+#include "SHiP/GeometryService/GeoModel.h"
 #include "SHiP/GeometryService/GeometryThread.h"
 #include "test_world.h"
 
@@ -17,7 +18,7 @@
 #include <cstddef>
 
 TEST_CASE("CleanGeant4GeometryStores.EmptiesTheStores", "[geometry_thread]") {
-    auto service = SHiP::GeometryService::fromWorld(buildTestWorld());
+    auto service = SHiP::Geant4Geometry::of(SHiP::geometryServiceFromWorld(buildTestWorld()));
 
     struct Sizes {
         std::size_t logical;
@@ -32,7 +33,7 @@ TEST_CASE("CleanGeant4GeometryStores.EmptiesTheStores", "[geometry_thread]") {
         });
     };
 
-    SHiP::geometry_thread().run([&] { service->geant4WorldLogical(); });
+    SHiP::geometry_thread().run([&] { (void)service->worldLogical(); });
     const auto before = sizes();
     // The world and the two cubes.
     CHECK(before.logical == 3);

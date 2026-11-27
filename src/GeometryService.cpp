@@ -4,41 +4,40 @@
 
 #include "SHiP/GeometryService/GeometryService.h"
 
-#include <G4LogicalVolume.hh>
-#include <G4VPhysicalVolume.hh>
+#include "SHiP/GeometryService/GeoModel.h"
 
-#include <GeoModel2G4/VolumeBuilder.h>
 #include <GeoModelDBManager/GMDBManager.h>
-#include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelRead/ReadGeoModel.h>
-#include <SHiP/geometry/DetectorBuilder.h>
 #include <cstdlib>
-#include <exception>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
+#include <utility>
 
 namespace SHiP {
 
-// ----------------------------------------------------------------------------
-// Factory: build from C++ source
-// ----------------------------------------------------------------------------
+struct GeometryService::Impl {
+    PVConstLink world;  ///< intrusive ref-counted GeoModel tree
+};
 
-std::unique_ptr<GeometryService> GeometryService::fromSource() {
-    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
-    SHiP::geometry::DetectorBuilder builder;
-    svc->m_world = builder.build();
-    if (!svc->m_world) {
-        throw std::runtime_error("GeometryService::fromSource: geometry build returned null");
+/// Grants this file's free functions access to GeometryService internals.
+struct GeometryServiceAccess {
+    static std::unique_ptr<GeometryService> make(PVConstLink world) {
+        auto impl =
+            std::make_unique<GeometryService::Impl>(GeometryService::Impl{std::move(world)});
+        return std::unique_ptr<GeometryService>(new GeometryService(std::move(impl)));
     }
-    return svc;
-}
+    static const PVConstLink& world(const GeometryService& service) noexcept {
+        return service.m_impl->world;
+    }
+};
+
+GeometryService::GeometryService(std::unique_ptr<Impl> impl) : m_impl{std::move(impl)} {}
+
+GeometryService::~GeometryService() = default;
 
 // ----------------------------------------------------------------------------
 // Factory: load from GeoModel .db file
@@ -50,7 +49,6 @@ std::unique_ptr<GeometryService> GeometryService::fromFile(const std::filesystem
     if (!std::filesystem::is_regular_file(dbPath)) {
         throw std::runtime_error("GeometryService::fromFile: no such file: " + dbPath.string());
     }
-    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
     const auto db = std::make_shared<GMDBManager>(dbPath.string());
     // An existing but corrupt or non-GeoModel file leaves the manager
     // unopened; ReadGeoModel would fail deep inside library code otherwise.
@@ -59,11 +57,11 @@ std::unique_ptr<GeometryService> GeometryService::fromFile(const std::filesystem
                                  dbPath.string());
     }
     GeoModelIO::ReadGeoModel reader(db);
-    svc->m_world = reader.buildGeoModel();
-    if (!svc->m_world) {
+    PVConstLink world = reader.buildGeoModel();
+    if (!world) {
         throw std::runtime_error("GeometryService::fromFile: buildGeoModel returned null");
     }
-    return svc;
+    return GeometryServiceAccess::make(std::move(world));
 }
 
 // ----------------------------------------------------------------------------
@@ -97,82 +95,18 @@ std::shared_ptr<GeometryService> GeometryService::sharedFromFile(
 }
 
 // ----------------------------------------------------------------------------
-// Factory: wrap an existing GeoModel tree
+// GeoModel interop (SHiP/GeometryService/GeoModel.h)
 // ----------------------------------------------------------------------------
 
-std::unique_ptr<GeometryService> GeometryService::fromWorld(PVConstLink world) {
+std::unique_ptr<GeometryService> geometryServiceFromWorld(PVConstLink world) {
     if (!world) {
-        throw std::runtime_error("GeometryService::fromWorld: world is null");
+        throw std::runtime_error("geometryServiceFromWorld: world is null");
     }
-    auto svc = std::unique_ptr<GeometryService>(new GeometryService());
-    svc->m_world = std::move(world);
-    return svc;
+    return GeometryServiceAccess::make(std::move(world));
 }
 
-// ----------------------------------------------------------------------------
-// IGeometryService implementation
-// ----------------------------------------------------------------------------
-
-const GeoVPhysVol* GeometryService::geoModelWorld() const {
-    return m_world.get();
-}
-
-namespace {
-
-// Logical volumes form a DAG (daughters are shared across placements);
-// the visited set keeps the walk linear in distinct volumes instead of
-// re-walking shared subtrees once per placement. Pre-order with emplace
-// keeps the first volume of each name, as a depth-first search would.
-// Index is GeometryService::m_lvByName, whose type names a private hash.
-template <typename Index>
-void indexLogicalVolumes(G4LogicalVolume* lv, Index& index,
-                         std::unordered_set<const G4LogicalVolume*>& visited) {
-    if (!visited.insert(lv).second) {
-        return;
-    }
-    index.emplace(lv->GetName(), lv);
-    for (auto i = 0uz; i < lv->GetNoDaughters(); ++i) {
-        indexLogicalVolumes(lv->GetDaughter(i)->GetLogicalVolume(), index, visited);
-    }
-}
-
-}  // namespace
-
-G4LogicalVolume& GeometryService::geant4WorldLogical() {
-    std::call_once(m_g4ConversionDone, [this] {
-        // A failed conversion is sticky: it can leave partially registered
-        // volumes in the Geant4 stores, so a retry could silently produce a
-        // mixed tree.
-        // Store the error and rethrow it on every call instead.
-        try {
-            VolumeBuilder builder{"SHiP"};
-            m_g4WorldLV = builder.Build(m_world);
-            if (!m_g4WorldLV) {
-                throw std::runtime_error("GeometryService: GeoModel→Geant4 conversion failed");
-            }
-            std::unordered_set<const G4LogicalVolume*> visited;
-            indexLogicalVolumes(m_g4WorldLV, m_lvByName, visited);
-        } catch (...) {
-            m_conversionError = std::current_exception();
-        }
-    });
-    if (m_conversionError) {
-        std::rethrow_exception(m_conversionError);
-    }
-    return *m_g4WorldLV;
-}
-
-G4LogicalVolume* GeometryService::getLogicalVolume(std::string_view name) const {
-    // A failed conversion must not look like "not converted yet".
-    if (m_conversionError) {
-        std::rethrow_exception(m_conversionError);
-    }
-    // Index this service's own tree rather than search G4LogicalVolumeStore:
-    // retained trees of expired instances of the same file leave
-    // identically named volumes in the store, and a store lookup would
-    // return the first — stale — match. Empty until conversion.
-    const auto it = m_lvByName.find(name);
-    return it == m_lvByName.end() ? nullptr : it->second;
+PVConstLink geoModelWorld(const GeometryService& service) {
+    return GeometryServiceAccess::world(service);
 }
 
 // ----------------------------------------------------------------------------

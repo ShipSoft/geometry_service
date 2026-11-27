@@ -92,26 +92,3 @@ TEST_CASE("ResolveGeometryDbPath.EmptyPathThrows", "[geometry_service]") {
     const InstalledGeometry installed{"installed.db"};
     CHECK_THROWS_AS(SHiP::resolveGeometryDbPath(""), std::runtime_error);
 }
-
-TEST_CASE("GeometryServiceTest.FromWorldNullThrows", "[geometry_service]") {
-    CHECK_THROWS_AS(GeometryService::fromWorld(nullptr), std::runtime_error);
-}
-
-TEST_CASE("GeometryServiceTest.FromSourceReturnsNonNull", "[geometry_service]") {
-    auto svc = GeometryService::fromSource();
-    CHECK(svc != nullptr);
-}
-
-TEST_CASE("GeometryServiceTest.GeoModelWorldNonNull", "[geometry_service]") {
-    auto svc = GeometryService::fromSource();
-    REQUIRE(svc != nullptr);
-    CHECK(svc->geoModelWorld() != nullptr);
-}
-
-TEST_CASE("GeometryServiceTest.GetLogicalVolumeBeforeG4ReturnsNull", "[geometry_service]") {
-    // geant4WorldLogical() has not been called, so there is no converted
-    // tree yet. getLogicalVolume() must return nullptr without crashing.
-    auto svc = GeometryService::fromSource();
-    REQUIRE(svc != nullptr);
-    CHECK(svc->getLogicalVolume("anything") == nullptr);
-}

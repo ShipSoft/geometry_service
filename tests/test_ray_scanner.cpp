@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "SHiP/GeometryService/G4RayScanner.h"
-#include "SHiP/GeometryService/GeometryService.h"
+#include "SHiP/GeometryService/Geant4Geometry.h"
+#include "SHiP/GeometryService/GeoModel.h"
 #include "test_world.h"
 
 #include <G4LogicalVolume.hh>
@@ -19,7 +20,7 @@
 
 using Catch::Matchers::WithinAbs;
 using SHiP::G4RayScanner;
-using SHiP::GeometryService;
+using SHiP::Geant4Geometry;
 
 namespace {
 
@@ -27,19 +28,19 @@ namespace {
 // in the global Geant4 stores, so repeated conversions would pile up copies.
 // (Conversion runs on the main thread — fine here because this binary is the
 // only Geant4 geometry user; multi-user code must use SHiP::geometry_thread().)
-GeometryService& service() {
-    static std::unique_ptr<GeometryService> svc = [] {
-        auto s = GeometryService::fromWorld(buildTestWorld());
-        s->geant4WorldLogical();
-        return s;
+Geant4Geometry& service() {
+    static const std::shared_ptr<Geant4Geometry> g4 = [] {
+        auto g = Geant4Geometry::of(SHiP::geometryServiceFromWorld(buildTestWorld()));
+        (void)g->worldLogical();
+        return g;
     }();
-    return *svc;
+    return *g4;
 }
 
 // Scanners are per-test: G4GeometryManager's closed flag is process-global,
 // so only one scanner may be alive at a time (see G4RayScanner.h).
 G4RayScanner makeWorldScanner() {
-    return G4RayScanner{&service().geant4WorldLogical()};
+    return G4RayScanner{&service().worldLogical()};
 }
 
 }  // namespace
@@ -111,7 +112,7 @@ TEST_CASE("RayScannerTest.MissingRayReturnsEmpty", "[ray_scanner]") {
 TEST_CASE("RayScannerTest.DaughterVolumeScanUsesItsLocalFrame", "[ray_scanner]") {
     // The iron cube sits at z = +200 mm in the world, but a scanner built on
     // its logical volume works in the cube's own frame, centred on origin.
-    auto* ironLV = service().getLogicalVolume("TestIronBox");
+    auto* ironLV = service().logicalVolume("TestIronBox");
     REQUIRE(ironLV != nullptr);
     G4RayScanner scanner{ironLV};
     auto [entry, segments] = scanner.scan({0, 0, -500}, {0, 0, 1});
@@ -142,7 +143,7 @@ TEST_CASE("RayScannerTest.SecondScannerWhileFirstAliveThrows", "[ray_scanner]") 
     // The closed flag is process-global: a second scanner could not voxelise
     // its tree, so its constructor refuses instead of degrading silently.
     auto scanner = makeWorldScanner();
-    auto* ironLV = service().getLogicalVolume("TestIronBox");
+    auto* ironLV = service().logicalVolume("TestIronBox");
     REQUIRE(ironLV != nullptr);
     CHECK_THROWS_AS(G4RayScanner{ironLV}, std::logic_error);
 }
@@ -158,14 +159,14 @@ TEST_CASE("RayScannerTest.ZeroDirectionThrows", "[ray_scanner]") {
     CHECK_THROWS_AS(scanner.scan({0, 0, 0}, {0, 0, nan}), std::invalid_argument);
 }
 
-TEST_CASE("GeometryServiceTest.LogicalVolumeLookupAfterConversion", "[geometry_service]") {
+TEST_CASE("Geant4GeometryTest.LogicalVolumeLookupAfterConversion", "[geant4_geometry]") {
     auto& svc = service();
-    CHECK(svc.getLogicalVolume("TestWorld") == &svc.geant4WorldLogical());
-    auto* iron = svc.getLogicalVolume("TestIronBox");
+    CHECK(svc.logicalVolume("TestWorld") == &svc.worldLogical());
+    auto* iron = svc.logicalVolume("TestIronBox");
     REQUIRE(iron != nullptr);
     CHECK(iron->GetMaterial()->GetName() == "TestIron");
-    CHECK(svc.getLogicalVolume("NoSuchVolume") == nullptr);
+    CHECK(svc.logicalVolume("NoSuchVolume") == nullptr);
     // The view is not null-terminated: only its first 11 characters count.
     const std::string_view prefix = std::string_view{"TestIronBoxExtra"}.substr(0, 11);
-    CHECK(svc.getLogicalVolume(prefix) == iron);
+    CHECK(svc.logicalVolume(prefix) == iron);
 }

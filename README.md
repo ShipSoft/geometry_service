@@ -10,36 +10,41 @@ An [automatic class reference](https://shipsoft.github.io/geometry_service/) is 
 
 ## Architecture
 
+The library comes in three parts, so that a consumer pulls in only the
+toolkits it uses:
+
+| Target | Header | Dependencies in the interface |
+|---|---|---|
+| `SHiP::GeometryService` | `GeometryService.h` | none |
+| `SHiP::GeometryServiceGeoModel` | `GeoModel.h` | GeoModelKernel |
+| `SHiP::GeometryServiceG4` | `Geant4Geometry.h`, `G4RayScanner.h`, `GeometryThread.h` | Geant4 |
+
 ```
-┌─────────────────────────────────────────┐
-│  IGeometryService  (abstract interface) │
-│  • geoModelWorld()  → GeoVPhysVol*      │
-│  • geant4WorldLogical() → G4LogicalVol& │  ← lazy, call_once
-│  • getLogicalVolume(name)               │
-└───────────────────┬─────────────────────┘
-                    │ implements
-┌───────────────────▼─────────────────────┐
-│  GeometryService                        │
-│  ::fromSource()       — C++ builder     │
-│  ::fromFile(db)       — GeoModelIO::Read│
-│  ::sharedFromFile(db) — one per file    │
-│  ::fromWorld(world)   — existing tree   │
-└─────────────────────────────────────────┘
+GeometryService                       core: loads and owns the GeoModel tree
+  ::fromFile(db)                      reads a GeoModel .db file
+  ::sharedFromFile(db)                one instance per file and process
+resolveGeometryDbPath(name)           finds installed .db files
 
-G4RayScanner     straight-line material scan over a converted tree
-geometry_thread  the one thread allowed to create Geant4 geometry
+geoModelWorld(service)                GeoModel component
+geometryServiceFromWorld(world)
+
+Geant4Geometry::of(service)           G4 component: one conversion per service
+  .worldLogical()                     lazy, call_once
+  .logicalVolume(name)
+G4RayScanner                          straight-line material scan
+geometry_thread()                     the one thread allowed to create Geant4 geometry
+clean_geant4_geometry_stores()
 ```
 
-**Design decisions:**
+Design decisions:
 
-- `IGeometryService` has no framework headers, so it can be used standalone or
-  from any framework.
-- GeoModel tree construction is **eager** (in the factory functions) to surface
-  geometry errors at startup.
-- GeoModel→Geant4 conversion (`geant4WorldLogical()`) is **lazy** (guarded by
-  `std::call_once`). Users that only need the GeoModel tree never pay for it,
-  and the caller decides which thread creates the Geant4 volumes. No
-  `G4RunManager` is needed.
+- GeoModel stays out of the core header, so tracking and digitisation code
+  can load and pass the geometry around without seeing GeoModel or Geant4.
+- The GeoModel tree is built eagerly, in the factory functions, so geometry
+  errors surface at startup.
+- The GeoModel to Geant4 conversion is lazy (guarded by `std::call_once`).
+  Users that only need the GeoModel tree never pay for it, and the caller
+  decides which thread creates the Geant4 volumes. No `G4RunManager` is needed.
 - Geant4 MT allows only one geometry-creating thread per process. When more
   than one component touches Geant4 geometry, run conversion and scanning
   through `SHiP::geometry_thread()`.
@@ -52,9 +57,8 @@ For manual builds you'll need:
 
 - CMake 3.24+
 - C++23 compiler
-- `SHiPGeometry` installed (from `geometry/` repository)
-- GeoModel 6.30+ (GeoModelCore, GeoModelIO, GeoModelG4)
-- Geant4 11.x
+- GeoModel 6.30+ (GeoModelCore, GeoModelIO; GeoModelG4 for the G4 component)
+- Geant4 11.3+ for the G4 component (`-DBUILD_G4=OFF` skips it)
 
 ## Building
 
@@ -80,53 +84,62 @@ Use `pixi shell` to drop into an interactive shell with the env activated
 
 ### Manual build
 
-If you already have GeoModel, Geant4, and `SHiPGeometry`
+If you already have GeoModel and Geant4
 installed (e.g. via spack or a system package manager), you can build
 directly with CMake:
 
 ```bash
 cmake -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH="/path/to/GeoModel/install;/path/to/SHiPGeometry/install"
+  -DCMAKE_PREFIX_PATH="/path/to/GeoModel/install;/path/to/Geant4/install"
 cmake --build build
 cmake --install build --prefix /path/to/install
 ```
 
 ## API
 
-### Building geometry from source
+### Loading geometry from a `.db` file
 
 ```cpp
 #include <SHiP/GeometryService/GeometryService.h>
 
-auto svc = SHiP::GeometryService::fromSource();
-const GeoVPhysVol* world = svc->geoModelWorld();
-```
-
-### Loading geometry from a `.db` file
-
-```cpp
 auto svc = SHiP::GeometryService::fromFile("/path/to/ship_geometry.db");
 ```
 
 ### Sharing one geometry file across plugins
 
 ```cpp
-// Same instance for every caller that names the same file
-auto svc = SHiP::GeometryService::sharedFromFile("/path/to/ship_geometry.db");
+// Same instance for every caller that names the same file. A bare file name
+// is looked up in $SHIPGEOMETRY_ROOT/share/geometry.
+auto svc = SHiP::GeometryService::sharedFromFile(
+    SHiP::resolveGeometryDbPath("ship_geometry.db"));
+```
+
+### Accessing the GeoModel tree
+
+```cpp
+#include <SHiP/GeometryService/GeoModel.h>
+
+PVConstLink world = SHiP::geoModelWorld(*svc);
+
+// Wrap a tree built in memory, e.g. by SHiP::geometry::DetectorBuilder
+auto built = SHiP::geometryServiceFromWorld(SHiP::geometry::DetectorBuilder{}.build());
 ```
 
 ### Accessing Geant4 geometry
 
-The first call to `geant4WorldLogical()` converts the GeoModel tree. If
-anything else in the process creates Geant4 geometry, convert on the shared
-geometry thread:
+`Geant4Geometry::of()` returns the one Geant4 view of a service, shared by
+every caller in the process. Keep it alive while you use its volumes. The
+first call to `worldLogical()` converts the GeoModel tree. If anything else in
+the process creates Geant4 geometry, convert on the shared geometry thread:
 
 ```cpp
+#include <SHiP/GeometryService/Geant4Geometry.h>
 #include <SHiP/GeometryService/GeometryThread.h>
 
+auto g4 = SHiP::Geant4Geometry::of(svc);
 auto& gt = SHiP::geometry_thread();
-G4LogicalVolume& worldLV = gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
+G4LogicalVolume& worldLV = gt.run([&]() -> auto& { return g4->worldLogical(); });
 ```
 
 In a plain single-threaded Geant4 application, calling it from
@@ -134,7 +147,7 @@ In a plain single-threaded Geant4 application, calling it from
 
 ```cpp
 G4VPhysicalVolume* Construct() override {
-    G4LogicalVolume& worldLV = geoSvc_.geant4WorldLogical();
+    G4LogicalVolume& worldLV = g4_->worldLogical();
     return new G4PVPlacement(nullptr, G4ThreeVector(), &worldLV,
                              "World", nullptr, false, 0);
 }
@@ -143,8 +156,8 @@ G4VPhysicalVolume* Construct() override {
 ### Volume look-up
 
 ```cpp
-// Valid after geant4WorldLogical() has been called
-G4LogicalVolume* lv = svc->getLogicalVolume("MuonShield");  // nullptr if absent
+// Valid after worldLogical() has been called
+G4LogicalVolume* lv = g4->logicalVolume("MuonShield");  // nullptr if absent
 ```
 
 ### Material scans
@@ -165,43 +178,37 @@ for (const auto& [material, length] : segments)
 ## Using from CMake
 
 ```cmake
-find_package(SHiPGeometryService CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE SHiP::GeometryService)
+# Core only: finds neither GeoModel nor Geant4
+find_package(SHiPGeometryService 0.7 CONFIG REQUIRED)
+target_link_libraries(mylib PRIVATE SHiP::GeometryService)
+
+# With the optional components
+find_package(SHiPGeometryService 0.7 CONFIG REQUIRED COMPONENTS GeoModel G4)
+target_link_libraries(mysim PRIVATE SHiP::GeometryServiceG4 SHiP::GeometryServiceGeoModel)
 ```
 
-The package config pulls in `SHiPGeometry`, `GeoModelCore`, `GeoModelIO`,
-`GeoModelG4`, and `Geant4` automatically.
+The package config looks up GeoModelCore for the `GeoModel` and `G4`
+components, and Geant4 for `G4`, but only when they are requested.
 
-### Upgrading to 0.6
+### Upgrading to 0.7
 
-0.6.0 requires C++23, and the exported target asks for it.
+0.7.0 splits the library into the three targets above and drops the
+dependency on `SHiPGeometry`. Request the components you use in
+`find_package` and link their targets.
 
-`geant4WorldLogical()` returns `G4LogicalVolume&`. It throws if the conversion
-fails, so there is no null to check for. Take the address where Geant4 wants a
-pointer, and give a lambda that returns the volume from `GeometryThread::run` a
-reference return type:
-
-```cpp
-G4LogicalVolume& worldLV = gt.run([&]() -> auto& { return svc->geant4WorldLogical(); });
-```
-
-`getLogicalVolume()` takes a `std::string_view`. Calls with a `std::string` or
-a literal compile unchanged; classes that implement `IGeometryService` need the
-new signature.
-
-0.6.0 also removes the pre-0.5.0 spellings, which 0.5.0 kept as deprecated
-forwarders. Code that still uses them needs these replacements:
-
-| Before | After |
+| 0.6 | 0.7 |
 |---|---|
-| `#include <GeometryService/SHiPGeometryService.h>` | `#include <SHiP/GeometryService/GeometryService.h>` |
-| `#include <GeometryService/X.h>` | `#include <SHiP/GeometryService/X.h>` |
-| `ship::SHiPGeometryService` | `SHiP::GeometryService` |
-| `ship::X` | `SHiP::X` |
-| `SHiPGeometryService::SHiPGeometryService` | `SHiP::GeometryService` |
+| `GeometryService::fromSource()` | `geometryServiceFromWorld(SHiP::geometry::DetectorBuilder{}.build())` |
+| `GeometryService::fromWorld(world)` | `geometryServiceFromWorld(world)` (`GeoModel.h`) |
+| `svc->geoModelWorld()` | `geoModelWorld(*svc)`, which returns a `PVConstLink` |
+| `svc->geant4WorldLogical()` | `Geant4Geometry::of(svc)->worldLogical()` |
+| `svc->getLogicalVolume(name)` | `Geant4Geometry::of(svc)->logicalVolume(name)` |
+| `IGeometryService` | `GeometryService`, plus `Geant4Geometry` for Geant4 |
+| `SHiP::GeometryService` linking Geant4 | `SHiP::GeometryServiceG4` |
 
-The `namespace ship = SHiP;` alias and the `SHIP_NO_DEPRECATED_NAMESPACE_ALIAS`
-switch are gone with them.
+In conda, `geometry-service-core` has the core and GeoModel components and
+`geometry-service-g4` has the Geant4 one. The `shipgeometryservice`
+metapackage installs both for one release cycle.
 
 ## Licence
 

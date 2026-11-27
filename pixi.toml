@@ -12,12 +12,12 @@ requires-pixi = ">=0.68"
 # Lets downstream dev environments (aegir, ...) consume the geometry service
 # from source: `shipgeometryservice = { path = "../geometry_service" }`.
 # Mirrors ship-conda-recipes/recipes/shipgeometryservice (the release recipe);
-# keep the version and the host dependencies in lockstep with it. To
-# co-develop the geometry itself, point shipgeometry below at a sibling
-# checkout: `shipgeometry = { path = "../geometry" }`.
+# keep the version and the host dependencies in lockstep with it. The release
+# recipe splits the build into geometry-service-core and geometry-service-g4;
+# this source package always contains both.
 [package]
 name = "shipgeometryservice"
-version = "0.6.0"
+version = "0.7.0"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.*" }
@@ -28,10 +28,9 @@ extra-args = [
     "-DBUILD_TESTING=OFF",
 ]
 
-# eigen-abi-devel and nlohmann_json are needed for the same GeoModel CMake
-# config reasons documented in the release recipe.
+# eigen-abi-devel is needed for the same GeoModel CMake config reasons
+# documented in the release recipe.
 [package.host-dependencies]
-shipgeometry = ">=0.3.0"
 geomodel-core = ">=6.30"
 geomodel-g4 = ">=6.30"
 # Same version as global-variants.yaml in ship-conda-recipes.
@@ -44,9 +43,7 @@ geant4 = "11.4.3.*"
 expat = "*"
 zlib = "*"
 freetype = "*"
-mp-units = "*"
 eigen-abi-devel = "*"
-nlohmann_json = "*"
 
 [dependencies]
 cxx-compiler = "*"
@@ -54,7 +51,6 @@ cmake = ">=3.24"
 make = "*"
 ninja = "*"
 git = "*"
-shipgeometry = ">=0.3.0"
 # >=6.30: GeoModel!612 replaced ExtParameterisedVolumeBuilder with a concrete
 # VolumeBuilder whose conversion caches are per-instance. GeometryService
 # builds against that API only.
@@ -68,9 +64,7 @@ geant4 = "11.4.3.*"
 expat = "*"
 zlib = "*"
 freetype = "*"
-# Required by GeoModelTools' CMake config (find_dependency via SHiPGeometry);
-# not declared as a run dependency by the shipgeometry package itself.
-nlohmann_json = "*"
+# GeoModelCore's CMake config looks for Eigen3.
 eigen-abi-devel = "*"
 # Only the tests use Catch2, and the package build sets BUILD_TESTING=OFF, so
 # it is not a host dependency.
@@ -169,19 +163,6 @@ sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/pre-commit
 sed -i 's#"$PREK" hook-impl#pixi run -e lint prek hook-impl#' "$hooks/commit-msg"
 '''
 
-# --- Multi-package development (opt-in) -------------------------------------
-# Build shipgeometry from a sibling checkout instead of the released conda
-# package: uncomment this block and the `dev` environment below, then run
-# e.g. `pixi run -e dev build`. Do NOT commit the uncommented block or the
-# pixi.lock changes it causes: the committed lock must stay resolvable
-# without sibling checkouts, and pixi validates every environment even when
-# only the default one is used. See the Developer Guide (SHiP Documentation
-# site) for the full workflow.
-#
-# [feature.dev.dependencies]
-# shipgeometry = { path = "../geometry" }
-
 [environments]
 default = { solve-group = "default" }
 lint = { features = ["lint"], solve-group = "lint" }
-# dev = { features = ["dev"] }  # multi-package dev, see block above
