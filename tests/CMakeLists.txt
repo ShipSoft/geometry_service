@@ -9,7 +9,11 @@ include(Catch)
 foreach(
     test
     IN
-    ITEMS test_geometry_service test_ray_scanner test_geometry_thread
+    ITEMS
+        test_geometry_service
+        test_ray_scanner
+        test_geometry_thread
+        test_store_cleanup
 )
     add_executable(${test} ${test}.cpp)
     target_link_libraries(
