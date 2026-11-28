@@ -35,15 +35,8 @@ shipgeometry = ">=0.3.0"
 geomodel-core = ">=6.30"
 geomodel-g4 = ">=6.30"
 # Same version as global-variants.yaml in ship-conda-recipes.
-geant4 = "11.4.3.*"
-# Geant4Config.cmake calls find_dependency() on EXPAT, ZLIB and Freetype, each
-# of which needs headers and a CMake config. Since the v1-recipe modernisation
-# (conda-forge/geant4-feedstock#104) conda-forge geant4 brings in only the
-# runtime libexpat / libzlib / libfreetype, so find_package(Geant4) fails unless
-# the environment supplies these itself. The release recipe lists the same three.
-expat = "*"
-zlib = "*"
-freetype = "*"
+# noqt: see [dependencies] below.
+geant4 = { version = "11.4.3.*", build = "noqt*" }
 mp-units = "*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
@@ -62,12 +55,10 @@ geomodel = ">=6.30"
 # Pinned so that the Geant4 version only changes on purpose. geomodel is
 # published once per Geant4 version, and the solver has no reason to prefer
 # the newest one: without this pin linux-aarch64 resolved Geant4 10.7.4.
-geant4 = "11.4.3.*"
-# Geant4 arrives here through geomodel, and its CMake config needs the same
-# three as [package.host-dependencies] above.
-expat = "*"
-zlib = "*"
-freetype = "*"
+# The build is pinned to noqt because nothing here uses the Qt viewer, and the
+# solver otherwise prefers the qt build (noqt carries a track_feature) and pulls
+# in all of Qt.
+geant4 = { version = "11.4.3.*", build = "noqt*" }
 # Required by GeoModelTools' CMake config (find_dependency via SHiPGeometry);
 # not declared as a run dependency by the shipgeometry package itself.
 nlohmann_json = "*"

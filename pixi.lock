@@ -41,13 +41,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-5.0.1-h19c2612_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-abi-5.0.1.80-hf414acd_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-abi-devel-5.0.1.100-h2fbfb1f_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.9.0-hd2095e1_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.11.0-hd2095e1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/fmt-12.1.0-h76c4fd7_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/freetype-2.14.3-ha770c72_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/gcc-15.3.0-hc6a0c74_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/gcc_impl_linux-64-15.3.0-h6ad849d_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_f3881a7_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_71b79b1_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-core-6.33.0-h36a9998_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-fullsimlight-6.33.0-ha846704_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-g4-6.33.0-h3894e2d_1.conda
@@ -67,7 +67,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.23.0-ha042cf0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libedit-3.1.20260512-pl5321h373387f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libev-4.33-h280c20c_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.9.0-hd2095e1_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.11.0-hd2095e1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype-2.14.3-ha770c72_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype6-2.14.3-h5e6c136_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_7.conda
@@ -167,13 +167,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-5.0.1-hbf0d46f_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-abi-5.0.1.100-h9a8c16c_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-abi-devel-5.0.1.100-h1afb6ea_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.9.0-h4154aff_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.11.0-h4154aff_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/fmt-12.1.0-h166da81_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/freetype-2.14.3-h8af1aa0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/gcc-15.3.0-hfdd745d_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/gcc_impl_linux-aarch64-15.3.0-h543efd9_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_e006623_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_163982f_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-core-6.33.0-h7661776_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-fullsimlight-6.33.0-h853b6e0_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-g4-6.33.0-hb0f4c66_1.conda
@@ -193,7 +193,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcurl-8.23.0-h86273da_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libedit-3.1.20260512-pl5321hc48eb74_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libev-4.33-h80f16a2_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.9.0-h4154aff_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.11.0-h4154aff_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype-2.14.3-h8af1aa0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype6-2.14.3-h9cc7050_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_7.conda
@@ -303,13 +303,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-5.0.1-h19c2612_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-abi-5.0.1.80-hf414acd_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eigen-abi-devel-5.0.1.100-h2fbfb1f_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.9.0-hd2095e1_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.11.0-hd2095e1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/fmt-12.1.0-h76c4fd7_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/freetype-2.14.3-ha770c72_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/gcc-15.3.0-hc6a0c74_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/gcc_impl_linux-64-15.3.0-h6ad849d_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_f3881a7_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_71b79b1_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-core-6.33.0-h36a9998_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-fullsimlight-6.33.0-ha846704_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-g4-6.33.0-h3894e2d_1.conda
@@ -329,7 +329,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.23.0-ha042cf0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libedit-3.1.20260512-pl5321h373387f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libev-4.33-h280c20c_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.9.0-hd2095e1_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.11.0-hd2095e1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libffi-3.7.0-h81df57d_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype-2.14.3-ha770c72_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype6-2.14.3-h5e6c136_2.conda
@@ -485,13 +485,13 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-5.0.1-hbf0d46f_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-abi-5.0.1.100-h9a8c16c_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/eigen-abi-devel-5.0.1.100-h1afb6ea_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.9.0-h4154aff_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.11.0-h4154aff_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/fmt-12.1.0-h166da81_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/freetype-2.14.3-h8af1aa0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/gcc-15.3.0-hfdd745d_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/gcc_impl_linux-aarch64-15.3.0-h543efd9_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_e006623_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_163982f_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-core-6.33.0-h7661776_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-fullsimlight-6.33.0-h853b6e0_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-g4-6.33.0-hb0f4c66_1.conda
@@ -511,7 +511,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcurl-8.23.0-h86273da_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libedit-3.1.20260512-pl5321hc48eb74_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libev-4.33-h80f16a2_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.9.0-h4154aff_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.11.0-h4154aff_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libffi-3.7.0-hdaad0be_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype-2.14.3-h8af1aa0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype6-2.14.3-h9cc7050_2.conda
@@ -1051,21 +1051,21 @@ packages:
     - eigen-abi >=5.0.1.80,<5.0.1.81.0a0
   size: 14683
   timestamp: 1788951264833
-- conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.9.0-hd2095e1_0.conda
-  sha256: a59722000e2afd899c55465daa222aa510dcb035439dd7cd0ee18f7e938f664c
-  md5: 7ddc762bb33ba2adb9b46742c8af84bf
+- conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.11.0-hd2095e1_0.conda
+  sha256: c55333b379c242d3990a56a3ef60013b0ea3704e2416a3072b6895e1d2d5ab03
+  md5: 6c3af4208262d8f183890c457a74afcb
   depends:
   - __glibc >=2.17,<3.0.a0
-  - libexpat 2.9.0 hd2095e1_0
+  - libexpat 2.11.0 hd2095e1_0
   - libgcc >=15
   license: MIT
   license_family: MIT
   purls: []
   run_exports:
     weak:
-    - libexpat >=2.9.0,<3.0a0
-  size: 153307
-  timestamp: 1793054226084
+    - libexpat >=2.11.0,<3.0a0
+  size: 162510
+  timestamp: 1795647417509
 - conda: https://conda.anaconda.org/conda-forge/linux-64/fmt-12.1.0-h76c4fd7_1.conda
   sha256: 25d14a197601fdd616f2e501431b52887e69b31e7defbc1679381d718357ceb7
   md5: a70bb6d42ad121aef456e0007e92bed6
@@ -1125,11 +1125,14 @@ packages:
   run_exports: {}
   size: 83849972
   timestamp: 1790302722312
-- conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_f3881a7_0.conda
-  sha256: 5ed47a3cf06adc25e1eda36af8c2243e5c4c9fc3c72332ad2dc047cf77c74a2c
-  md5: aa69e1cfe80ac1255ae1d49614528975
+- conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-11.4.3-noqt_71b79b1_1.conda
+  sha256: 4392fa2bd603906ccd61742a071383f4ef64d888451274fbd1d977bdb0584b25
+  md5: 8df13359d6267c184041b35f73bd47fd
   depends:
-  - geant4-qt-mutex ==11.4.3 noqt_0
+  - geant4-qt-mutex ==11.4.3 noqt_1
+  - expat
+  - zlib
+  - freetype
   - libgl-devel
   - geant4-data-abla 3.3.0.*
   - geant4-data-channeling 2.0.0.*
@@ -1146,16 +1149,16 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - libstdcxx >=15
   - libgcc >=15
-  - hdf5 >=1.14.6,<1.14.7.0a0
-  - xorg-libxmu >=1.3.1,<2.0a0
-  - xerces-c >=3.3.0,<3.4.0a0
-  - libfreetype >=2.14.3
-  - libfreetype6 >=2.14.3
-  - libgl >=1.7.0,<2.0a0
-  - libexpat >=2.8.5,<3.0a0
-  - xorg-libx11 >=1.8.13,<2.0a0
   - libzlib >=1.3.2,<2.0a0
   - clhep >=2.4.7.2,<2.4.7.3.0a0
+  - xorg-libx11 >=1.8.14,<2.0a0
+  - libfreetype >=2.14.3
+  - libfreetype6 >=2.14.3
+  - xorg-libxmu >=1.3.1,<2.0a0
+  - libgl >=1.7.0,<2.0a0
+  - hdf5 >=1.14.6,<1.14.7.0a0
+  - libexpat >=2.11.0,<3.0a0
+  - xerces-c >=3.3.0,<3.4.0a0
   track_features:
   - geant4-p-0
   license: LicenseRef-Geant4
@@ -1163,18 +1166,18 @@ packages:
   run_exports:
     weak:
     - geant4 >=11.4.3,<11.4.4.0a0
-  size: 23090735
-  timestamp: 1790881057540
-- conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_0.conda
-  sha256: 6d0ce01ae4de0d37a4493c99dcfaf302cc58676edddc668e2e10c9588b9ba184
-  md5: 9de9cdd77f3fde4b92667d9bd157518a
+  size: 23091460
+  timestamp: 1795817220739
+- conda: https://conda.anaconda.org/conda-forge/linux-64/geant4-qt-mutex-11.4.3-noqt_1.conda
+  sha256: 93b5b5098d27cdb03acdf3dbb66dd7f8ea1995b1fbd8b5bee349e4829737382a
+  md5: 57d37f7e859ed1f553e3833ff7b609dc
   track_features:
   - geant4-qt-mutex-p-0
   license: LicenseRef-Geant4
   purls: []
   run_exports: {}
-  size: 11288
-  timestamp: 1790881059388
+  size: 11426
+  timestamp: 1795817216683
 - conda: https://conda.anaconda.org/conda-forge/linux-64/geomodel-core-6.33.0-h36a9998_1.conda
   sha256: 8c63bf9e110c8ed7eef86a591fec2c36e37cc0ea4eeeed8edd566ae0c4039d1b
   md5: b8c083c32b3f2368aa3de8b93ec2b1d0
@@ -1508,20 +1511,20 @@ packages:
     - libev >=4.33,<4.34.0a0
   size: 43220
   timestamp: 1785917328200
-- conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.9.0-hd2095e1_0.conda
-  sha256: 7b930a8b6bc6553cb754b4977a11f9c862c719a652fc2d128d89270992ce8beb
-  md5: 317ecabe4a58b3068c7958dc5eb89e43
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.11.0-hd2095e1_0.conda
+  sha256: f81a13d80aa62aa6cba1ab54cce5262eea4f2a05979a0c35d0fe979f0ea94600
+  md5: 47c5c4a042f288a54654ebe79bafd1b3
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=15
   constrains:
-  - expat 2.9.0.*
+  - expat 2.11.0.*
   license: MIT
   license_family: MIT
   purls: []
   run_exports: {}
-  size: 78894
-  timestamp: 1793054221966
+  size: 83976
+  timestamp: 1795647413550
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libffi-3.7.0-h81df57d_1.conda
   sha256: c8c7583ef063bc3c430f1d48298e5ad24f796a35c22ed5b14183325825a61106
   md5: 6525a0b06aa4fd390795f0740636a9dd
@@ -2219,7 +2222,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/pyyaml?source=compressed-mapping
+  - pkg:pypi/pyyaml?source=hash-mapping
   run_exports: {}
   size: 226096
   timestamp: 1793655133957
@@ -2886,20 +2889,20 @@ packages:
     - eigen-abi >=5.0.1.100,<5.0.1.101.0a0
   size: 14651
   timestamp: 1788951263297
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.9.0-h4154aff_0.conda
-  sha256: a39a3821bc73c1640ba9ae1d45eac632c9bb7eb6ff6a6ca78394c84db3aeffd0
-  md5: 90c2a34d06fa0c609559d1307a090e45
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.11.0-h4154aff_0.conda
+  sha256: 4e064fe1da19d236a5d8041b038aca46f3915b8e7b6b8b85394d0e6a014990ab
+  md5: 1954f7054437bb1e43bb1d52ea77bbb9
   depends:
-  - libexpat 2.9.0 h4154aff_0
+  - libexpat 2.11.0 h4154aff_0
   - libgcc >=15
   license: MIT
   license_family: MIT
   purls: []
   run_exports:
     weak:
-    - libexpat >=2.9.0,<3.0a0
-  size: 149011
-  timestamp: 1793054218639
+    - libexpat >=2.11.0,<3.0a0
+  size: 156623
+  timestamp: 1795647411127
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/fmt-12.1.0-h166da81_1.conda
   sha256: 9576231133ef25127cf8855492a6e34a3189e3a8986cc69ebfef6516670d4822
   md5: 2ba56bd59c36644d783ef8a8086ec0e4
@@ -2958,11 +2961,14 @@ packages:
   run_exports: {}
   size: 75249934
   timestamp: 1790302274160
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_e006623_0.conda
-  sha256: 308a7ffede43f8d6731d3cd38530da1148f94be4089eabe61bd218165edacee8
-  md5: 304dc15b19206d3fa1185a8da15e2991
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-11.4.3-noqt_163982f_1.conda
+  sha256: 50306fb941ef73cc646b1adaf88e7d7f9df6b72e180d77e7975e4113cfe070ba
+  md5: 32bd655d770a731a9517b2ab6d03b01e
   depends:
-  - geant4-qt-mutex ==11.4.3 noqt_0
+  - geant4-qt-mutex ==11.4.3 noqt_1
+  - expat
+  - zlib
+  - freetype
   - libgl-devel
   - geant4-data-abla 3.3.0.*
   - geant4-data-channeling 2.0.0.*
@@ -2980,14 +2986,14 @@ packages:
   - libgcc >=15
   - clhep >=2.4.7.2,<2.4.7.3.0a0
   - libzlib >=1.3.2,<2.0a0
-  - xerces-c >=3.3.0,<3.4.0a0
-  - hdf5 >=1.14.6,<1.14.7.0a0
-  - xorg-libxmu >=1.3.1,<2.0a0
-  - xorg-libx11 >=1.8.13,<2.0a0
-  - libgl >=1.7.0,<2.0a0
   - libfreetype >=2.14.3
   - libfreetype6 >=2.14.3
-  - libexpat >=2.8.5,<3.0a0
+  - hdf5 >=1.14.6,<1.14.7.0a0
+  - libgl >=1.7.0,<2.0a0
+  - libexpat >=2.11.0,<3.0a0
+  - xorg-libxmu >=1.3.1,<2.0a0
+  - xorg-libx11 >=1.8.14,<2.0a0
+  - xerces-c >=3.3.0,<3.4.0a0
   track_features:
   - geant4-p-0
   license: LicenseRef-Geant4
@@ -2995,18 +3001,18 @@ packages:
   run_exports:
     weak:
     - geant4 >=11.4.3,<11.4.4.0a0
-  size: 22362654
-  timestamp: 1790881059392
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_0.conda
-  sha256: bd91e4ef15766a6e02f405f5efbd54e05a61700074e2156070c884a82ed58ebf
-  md5: bc1d4d8aea78ad21a43547782d9a1bbd
+  size: 22363308
+  timestamp: 1795817218571
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geant4-qt-mutex-11.4.3-noqt_1.conda
+  sha256: 77445355c94b7025e922e8ce5edb5137c15c3234cb29ef02841a449f5ece4bc8
+  md5: ee76dbe16471234828b2aad4c512ef92
   track_features:
   - geant4-qt-mutex-p-0
   license: LicenseRef-Geant4
   purls: []
   run_exports: {}
-  size: 11286
-  timestamp: 1790881059392
+  size: 11428
+  timestamp: 1795817218571
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/geomodel-core-6.33.0-h7661776_1.conda
   sha256: 6ddcf0ab48948f05aadc47ee8eb411a08eaa56e0a4e511ae90cf9ad95605d995
   md5: 48538444c3e3384ec5e0e4410bdfd25e
@@ -3323,19 +3329,19 @@ packages:
     - libev >=4.33,<4.34.0a0
   size: 45746
   timestamp: 1785917328690
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.9.0-h4154aff_0.conda
-  sha256: d3327ab1086334309cab3cf533c95f70c44dcbb8f66a99a92b23fb0f3f20f1da
-  md5: cb3ce9ae94bc74f792c119312e03bcf7
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.11.0-h4154aff_0.conda
+  sha256: 7366ffd7532a5b4698267a0b7f1aee3204aa0755d2dd2b0e6109e7e2958c9c57
+  md5: a9e083f1129427235e03dc2e0df6240c
   depends:
   - libgcc >=15
   constrains:
-  - expat 2.9.0.*
+  - expat 2.11.0.*
   license: MIT
   license_family: MIT
   purls: []
   run_exports: {}
-  size: 80340
-  timestamp: 1793054214232
+  size: 84960
+  timestamp: 1795647405926
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libffi-3.7.0-hdaad0be_1.conda
   sha256: b1879d78b622c5f4817fd6d77fe7ae3ab7b501542e3c2f4ac77198c54c62c189
   md5: f9e5b3e446b526b34a7e25ecec08efd9
